@@ -4,26 +4,23 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
-import StoryBar from "@/components/StoryBar";
 import FeedPost from "@/components/FeedPost";
+
 import FilterBar from "@/components/FilterBar";
 import SidebarLeft from "@/components/SidebarLeft";
 import SidebarRight from "@/components/SidebarRight";
 import Footer from "@/components/Footer";
 import EmptyState from "@/components/EmptyState";
 import GemCard from "@/components/GemCard";
+import ViewToggle from "@/components/ViewToggle";
+import MapView from "@/components/MapView";
 
-import {
-  stories,
-  trendingDestinations,
-  suggestedTravelers,
-  type FeedPost as FeedPostType,
-} from "@/data/mockData";
+import { type FeedPost as FeedPostType } from "@/data/mockData";
 
 export default function Home() {
   const [gems, setGems] = useState<FeedPostType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   useEffect(() => {
     const fetchGems = async () => {
@@ -66,53 +63,16 @@ export default function Home() {
         {/* Filter Bar */}
         <FilterBar />
 
-        {/* Story Bar */}
-        <StoryBar stories={stories} />
+        {/* Global View Toggle Widget */}
+        <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
 
-        {/* ── Mobile: Trending Destinations section ────── */}
-        <section className="lg:hidden mb-6">
-          <h3 className="text-sm font-bold mb-3">Trending Destinations</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-            {trendingDestinations.map((gem) => (
-              <GemCard key={gem.id} gem={gem} />
-            ))}
-          </div>
-        </section>
+        {/* ── MAP VIEW ──────────────────────────────── */}
+        <div className={`w-full mt-4 ${viewMode === "map" ? "block animate-in fade-in" : "hidden"}`}>
+          <MapView gems={gems} />
+        </div>
 
-        {/* ── Mobile: Suggested Travelers ─────────────── */}
-        <section className="lg:hidden mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold">Suggested Travelers</h3>
-            <button className="text-xs text-primary font-semibold">See All</button>
-          </div>
-          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
-            {suggestedTravelers.map((traveler) => (
-              <div
-                key={traveler.id}
-                className="flex flex-col items-center gap-2 shrink-0 w-20"
-              >
-                <div className="size-14 rounded-full bg-slate-200 overflow-hidden relative">
-                  <Image
-                    src={traveler.avatarUrl}
-                    alt={traveler.avatarAlt}
-                    fill
-                    sizes="56px"
-                    className="object-cover"
-                  />
-                </div>
-                <p className="text-[11px] font-semibold text-center truncate w-full">
-                  {traveler.name}
-                </p>
-                <button className="text-[10px] font-bold text-primary bg-primary/10 rounded-full px-3 py-0.5 active:scale-95 transition-transform">
-                  Follow
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Dynamic Feed Posts or Empty State ──────────────────────────────── */}
-        <div className="flex flex-col gap-6 md:gap-10 pb-6">
+        {/* ── Dynamic Feed Posts or Empty State (GRID) ──────────────────────────────── */}
+        <div className={`flex flex-col gap-6 md:gap-10 pb-6 mt-4 ${viewMode === "grid" ? "block animate-in fade-in" : "hidden"}`}>
           {loading ? (
             <div className="flex justify-center py-20">
               <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />

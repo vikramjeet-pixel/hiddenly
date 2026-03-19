@@ -3,12 +3,13 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, query, collection, where, orderBy, getDocs, deleteDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { updateProfile } from "firebase/auth";
 import { useAuth } from "@/context/AuthContext";
-import { db, logOut } from "@/lib/firebase";
+import { db, storage, logOut } from "@/lib/firebase";
 import ProfileStats from "@/components/ProfileStats";
 import GemCard from "@/components/GemCard";
-import type { GemCardData } from "@/data/mockData";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
@@ -18,8 +19,33 @@ export default function ProfilePage() {
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [tempBio, setTempBio] = useState("");
   
-  // Dummy 'saved' gems for demonstration since saved logic is complex
-  const [savedGems, setSavedGems] = useState<GemCardData[]>([]);
+  // State for user's authored gems
+  const [myGems, setMyGems] = useState<any[]>([]);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !user) return;
+    const file = e.target.files[0];
+    if (!file.type.startsWith("image/")) return;
+
+    setIsUploadingAvatar(true);
+    try {
+      const storageRef = ref(storage, `users/${user.uid}/avatar_${Date.now()}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      
+      // Update core Auth profile
+      await updateProfile(user, { photoURL: url });
+      
+      // Force refresh to pull down new photo URL globally
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload profile picture.");
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -49,7 +75,32 @@ export default function ProfilePage() {
         }
       };
 
+      // Fetch user's own gems without creating complex composite indexes
+      const fetchUserGems = async () => {
+        try {
+          const q = query(
+            collection(db, "gems"),
+            where("authorId", "==", user.uid)
+          );
+          const snapshot = await getDocs(q);
+          
+          const userGems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          
+          // Sort client-side to prevent 'Index required' console errors
+          userGems.sort((a: any, b: any) => {
+            const timeA = a.createdAt?.toMillis() || 0;
+            const timeB = b.createdAt?.toMillis() || 0;
+            return timeB - timeA;
+          });
+          
+          setMyGems(userGems);
+        } catch (error) {
+          console.error("Error fetching gems:", error);
+        }
+      };
+
       fetchUserData();
+      fetchUserGems();
     }
   }, [user, loading, router]);
 
@@ -69,6 +120,24 @@ export default function ProfilePage() {
   const startEditing = () => {
     setTempBio(bio);
     setIsEditingBio(true);
+  };
+
+  // Management controls for user posts
+  const handleDeleteGem = async (id: string) => {
+    if (window.confirm("Are you sure you want to permanently delete this Gem?")) {
+      try {
+        await deleteDoc(doc(db, "gems", id));
+        // Update local state without needing another fetch
+        setMyGems(prev => prev.filter(gem => gem.id !== id));
+      } catch (error) {
+        console.error("Failed to delete gem", error);
+        alert("Failed to delete gem. Check your permissions.");
+      }
+    }
+  };
+
+  const handleEditGem = (id: string) => {
+    alert("Full Edit Mode is coming soon! For now, please delete and repost.");
   };
 
   if (loading || !user) {
@@ -97,7 +166,7 @@ export default function ProfilePage() {
 
       <div className="max-w-4xl mx-auto px-6 -mt-24 md:-mt-32 relative z-10 flex flex-col items-center">
         {/* Top Section: Avatar & Info */}
-        <div className="size-32 md:size-48 rounded-full border-4 border-background overflow-hidden relative shadow-2xl bg-white mb-4">
+        <div className="size-32 md:size-48 rounded-full border-4 border-background overflow-hidden relative shadow-2xl bg-white mb-4 group cursor-pointer">
           <Image
             src={dummyAvatar}
             alt="Profile Avatar"
@@ -105,6 +174,24 @@ export default function ProfilePage() {
             sizes="192px"
             className="object-cover"
           />
+          {/* Edit Avatar Overlay */}
+          <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
+            {isUploadingAvatar ? (
+              <div className="size-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-2xl mb-1">add_a_photo</span>
+                <span className="text-[10px] font-bold tracking-widest uppercase">Change</span>
+              </>
+            )}
+            <input 
+              type="file" 
+              accept="image/*" 
+              className="hidden" 
+              onChange={handleAvatarChange} 
+              disabled={isUploadingAvatar}
+            />
+          </label>
         </div>
 
         <div className="flex flex-col items-center text-center">
@@ -156,34 +243,39 @@ export default function ProfilePage() {
         </div>
 
         {/* Stats Row Segment */}
-        <ProfileStats gemsCount={12} trustScore={950} followingCount={34} />
+        <ProfileStats gemsCount={myGems.length || 0} trustScore={0} followingCount={0} />
 
         {/* Spacer */}
         <div className="w-full h-[1px] bg-neutral-200 dark:bg-white/10 my-12 max-w-2xl" />
 
-        {/* Bottom Section: My Saved Gems Grid */}
+        {/* Bottom Section: My Posted Gems Grid */}
         <div className="w-full">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-black font-serif italic tracking-tighter">My Saved Gems</h2>
+            <h2 className="text-2xl font-black font-serif italic tracking-tighter">My Gems</h2>
             <div className="flex gap-2">
-              <button className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95">
+              <button className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center bg-primary text-white hover:bg-primary-hover transition-all shadow-md shadow-primary/20 active:scale-95">
                 <span className="material-symbols-outlined text-[18px]">grid_view</span>
               </button>
-              <button className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center bg-primary text-white hover:bg-primary-hover transition-all shadow-md shadow-primary/20 active:scale-95">
-                <span className="material-symbols-outlined text-[18px]">bookmark</span>
+              <button onClick={() => router.push('/post')} className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95">
+                <span className="material-symbols-outlined text-[18px]">add</span>
               </button>
             </div>
           </div>
 
-          {savedGems.length === 0 ? (
+          {myGems.length === 0 ? (
             <div className="w-full h-48 border-2 border-dashed border-neutral-200 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center text-center p-6 bg-white/30 dark:bg-black/20">
-              <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-white/20 mb-3 block">turned_in_not</span>
-              <p className="text-sm tracking-wide text-neutral-500 uppercase font-medium">No saved gems yet</p>
+              <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-white/20 mb-3 block">photo_library</span>
+              <p className="text-sm tracking-wide text-neutral-500 uppercase font-medium">No gems posted yet</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {savedGems.map((gem) => (
-                <GemCard key={gem.id} gem={gem} />
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              {myGems.map((gem) => (
+                <GemCard 
+                  key={gem.id} 
+                  gem={gem} 
+                  onDelete={handleDeleteGem}
+                  onEdit={handleEditGem}
+                />
               ))}
             </div>
           )}

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import { X as XIcon } from "lucide-react";
 
 interface MediaPreviewProps {
@@ -29,6 +28,10 @@ export default function MediaPreview({ files, onRemove }: MediaPreviewProps) {
     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 mt-4">
       {files.map((file, index) => {
         const isVideo = file.type.startsWith("video/");
+        const src = previews[index];
+
+        // Wait for useEffect to populate the preview
+        if (!src) return null;
 
         return (
           <div
@@ -37,17 +40,17 @@ export default function MediaPreview({ files, onRemove }: MediaPreviewProps) {
           >
             {isVideo ? (
               <video
-                src={previews[index]}
+                src={src}
                 className="object-cover size-full opacity-80"
                 controls={false}
                 muted
               />
             ) : (
-              <Image
-                src={previews[index]}
+              // Use standard HTML img instead of next/image for client-side blob URLs!
+              <img
+                src={src}
                 alt={`Selected media ${index + 1}`}
-                fill
-                className="object-cover"
+                className="object-cover size-full"
               />
             )}
 

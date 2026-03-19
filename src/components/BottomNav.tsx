@@ -1,51 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface BottomNavItem {
   label: string;
   icon: string;
   iconFilled: string;
   id: string;
+  href: string;
 }
 
 const bottomNavItems: BottomNavItem[] = [
-  { label: "Discover", icon: "explore", iconFilled: "explore", id: "discover" },
-  { label: "Search", icon: "search", iconFilled: "search", id: "search" },
-  { label: "Post", icon: "add_circle", iconFilled: "add_circle", id: "post" },
+  { label: "Discover", icon: "explore", iconFilled: "explore", id: "discover", href: "/" },
+  { label: "Search", icon: "search", iconFilled: "search", id: "search", href: "#" },
+  { label: "Post", icon: "add_circle", iconFilled: "add_circle", id: "post", href: "/post" },
   {
     label: "Notifications",
     icon: "notifications",
     iconFilled: "notifications",
     id: "notifications",
+    href: "#",
   },
-  { label: "Profile", icon: "person", iconFilled: "person", id: "profile" },
+  { label: "Profile", icon: "person", iconFilled: "person", id: "profile", href: "/profile" },
 ];
 
 export default function BottomNav() {
-  const [activeTab, setActiveTab] = useState("discover");
+  const pathname = usePathname();
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#221610]/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 md:hidden bottom-nav-safe"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#221610]/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 md:hidden bottom-nav-safe pb-4 pt-2 px-2"
       id="bottom-navigation"
     >
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-14">
         {bottomNavItems.map((item) => {
-          const isActive = activeTab === item.id;
+          // Identify the current path against internal items
+          // Ex: pathname == "/profile" matches item.href
+          const isActive = pathname === item.href;
           const isPost = item.id === "post";
 
           return (
-            <button
+            <Link
+              href={item.href}
               key={item.id}
               id={`bottom-nav-${item.id}`}
-              onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center gap-0.5 py-1 px-3 transition-all active:scale-90 ${
-                isPost ? "" : ""
+              className={`flex flex-col items-center justify-center gap-1 transition-all active:scale-90 ${
+                isPost ? "-translate-y-4" : "w-16"
               }`}
             >
               {isPost ? (
-                <span className="material-symbols-outlined !text-[28px] text-white bg-primary rounded-full p-1.5 shadow-lg shadow-primary/30">
+                <span className="material-symbols-outlined !text-[32px] text-white bg-primary rounded-full p-2.5 shadow-xl shadow-primary/30 transform hover:scale-105 transition-transform">
                   {item.icon}
                 </span>
               ) : (
@@ -69,7 +74,7 @@ export default function BottomNav() {
               )}
               {!isPost && (
                 <span
-                  className={`text-[10px] font-medium transition-colors ${
+                  className={`text-[10px] font-bold tracking-wide transition-colors ${
                     isActive
                       ? "text-primary"
                       : "text-slate-400 dark:text-slate-500"
@@ -78,7 +83,7 @@ export default function BottomNav() {
                   {item.label}
                 </span>
               )}
-            </button>
+            </Link>
           );
         })}
       </div>
