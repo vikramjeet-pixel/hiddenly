@@ -1,65 +1,145 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+import StoryBar from "@/components/StoryBar";
+import FeedPost from "@/components/FeedPost";
+import FilterBar from "@/components/FilterBar";
+import SidebarLeft from "@/components/SidebarLeft";
+import SidebarRight from "@/components/SidebarRight";
+import Footer from "@/components/Footer";
+import EmptyState from "@/components/EmptyState";
+import GemCard from "@/components/GemCard";
+
+import {
+  stories,
+  trendingDestinations,
+  suggestedTravelers,
+  type FeedPost as FeedPostType,
+} from "@/data/mockData";
 
 export default function Home() {
+  const [gems, setGems] = useState<FeedPostType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGems = async () => {
+      setLoading(true);
+      try {
+        const gemsRef = collection(db, "gems");
+        const q = query(gemsRef, orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          const fetchedGems = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as FeedPostType[];
+          setGems(fetchedGems);
+        } else {
+          setGems([]);
+        }
+      } catch (error) {
+        console.error("Error fetching gems:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGems();
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="flex w-full max-w-[1920px] mx-auto px-0 md:px-6 xl:px-8 py-4 md:py-8 justify-center gap-8 relative pb-24 md:pb-8">
+      {/* ─── Left Sidebar (xl+) ─────────────────────── */}
+      <SidebarLeft />
+
+      {/* ─── Main Feed Area ─────────────────────────── */}
+      <div className="flex-1 max-w-[600px] flex flex-col w-full px-4 md:px-0">
+        
+        {/* Mobile top spacer (nav is sticky) */}
+        <div className="md:hidden h-2" />
+
+        {/* Filter Bar */}
+        <FilterBar />
+
+        {/* Story Bar */}
+        <StoryBar stories={stories} />
+
+        {/* ── Mobile: Trending Destinations section ────── */}
+        <section className="lg:hidden mb-6">
+          <h3 className="text-sm font-bold mb-3">Trending Destinations</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+            {trendingDestinations.map((gem) => (
+              <GemCard key={gem.id} gem={gem} />
+            ))}
+          </div>
+        </section>
+
+        {/* ── Mobile: Suggested Travelers ─────────────── */}
+        <section className="lg:hidden mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold">Suggested Travelers</h3>
+            <button className="text-xs text-primary font-semibold">See All</button>
+          </div>
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-1">
+            {suggestedTravelers.map((traveler) => (
+              <div
+                key={traveler.id}
+                className="flex flex-col items-center gap-2 shrink-0 w-20"
+              >
+                <div className="size-14 rounded-full bg-slate-200 overflow-hidden relative">
+                  <Image
+                    src={traveler.avatarUrl}
+                    alt={traveler.avatarAlt}
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                  />
+                </div>
+                <p className="text-[11px] font-semibold text-center truncate w-full">
+                  {traveler.name}
+                </p>
+                <button className="text-[10px] font-bold text-primary bg-primary/10 rounded-full px-3 py-0.5 active:scale-95 transition-transform">
+                  Follow
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Dynamic Feed Posts or Empty State ──────────────────────────────── */}
+        <div className="flex flex-col gap-6 md:gap-10 pb-6">
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : gems.length > 0 ? (
+            gems.map((post, index) => (
+              <FeedPost
+                key={post.id}
+                post={post}
+                isLast={index === gems.length - 1}
+              />
+            ))
+          ) : (
+            <div className="mt-8 border border-neutral-200 dark:border-white/10 rounded-3xl bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md">
+              <EmptyState />
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Mobile Footer */}
+        <div className="lg:hidden mt-4">
+          <Footer />
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* ─── Right Sidebar (lg+) ────────────────────── */}
+      <SidebarRight />
+    </main>
   );
 }
