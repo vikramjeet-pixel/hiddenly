@@ -12,7 +12,7 @@ export default function AuthButtons() {
       </Link>
       <Link
         href="/signup"
-        className="bg-primary text-white text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-full hover:bg-primary-hover active:scale-95 shadow-md shadow-primary/20 transition-all"
+        className="bg-primary text-primary-foreground text-xs font-bold uppercase tracking-widest px-5 py-2.5 rounded-full hover:bg-primary-hover active:scale-95 shadow-md shadow-primary/20 transition-all"
       >
         Sign Up
       </Link>

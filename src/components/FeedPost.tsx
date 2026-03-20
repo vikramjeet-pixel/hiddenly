@@ -1,7 +1,18 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { User as UserIcon } from "lucide-react";
+import { User as UserIcon, Bookmark, Heart, MessageCircle } from "lucide-react";
+import toast from "react-hot-toast";
+import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
+import { toggleSaveSpot } from "@/lib/vault-service";
+import { toggleLike } from "@/lib/interaction-service";
+import CommentSection from "@/components/CommentSection";
 
 export default function FeedPost({ post, isLast = false }: { post: any; isLast?: boolean }) {
+  const { user, savedSpots, likedSpots } = useAuth();
+  
   // Extract robust fallbacks since Firestore schema differs from initial Mock UI schema
   const authorName = post.author?.name || "Nomad Traveler";
   const authorUsername = post.author?.username || "secret_hunter";
@@ -9,6 +20,69 @@ export default function FeedPost({ post, isLast = false }: { post: any; isLast?:
   const locationText = post.locationName || post.location || "Unknown Coordinate";
   const captionText = post.description || post.caption || post.title || "";
   const mainImage = (post.media && post.media[0]) || post.imageUrl || "";
+
+  // Derive initial mapping directly from the globally synced states
+  const isInitiallySaved = savedSpots.includes(post.id);
+  const isInitiallyLiked = likedSpots?.includes(post.id) || false;
+
+  const [isSaved, setIsSaved] = useState(isInitiallySaved);
+  const [isLiked, setIsLiked] = useState(isInitiallyLiked);
+  const [likesCount, setLikesCount] = useState<number>(post.likesCount || post.likes || 0);
+  const [showComments, setShowComments] = useState(false);
+
+  // Maintain sync if they mutate from another tab/instance globally
+  useEffect(() => {
+    setIsSaved(savedSpots.includes(post.id));
+    setIsLiked(likedSpots?.includes(post.id) || false);
+  }, [savedSpots, likedSpots, post.id]);
+
+  const handleToggleLike = async () => {
+    if (!user) {
+      toast.error("Sign in to like gems!");
+      return;
+    }
+
+    const previousLikedState = isLiked;
+    const previousLikesCount = likesCount;
+
+    // 1. Optimistic UI update ensuring absolute zero-latency response
+    setIsLiked(!previousLikedState);
+    setLikesCount(prev => (previousLikedState ? prev - 1 : prev + 1));
+
+    try {
+      // 2. Transact globally
+      await toggleLike(user.uid, post.id);
+    } catch (error) {
+      // 3. Rollback immediately on failure
+      setIsLiked(previousLikedState);
+      setLikesCount(previousLikesCount);
+      toast.error("Failed to map like. Please try again.");
+    }
+  };
+
+  const handleToggleSave = async () => {
+    if (!user) {
+      toast.error("Sign in to save gems to your Vault!");
+      return;
+    }
+
+    const previousServerState = isSaved;
+    const optimisticState = !isSaved;
+
+    setIsSaved(optimisticState);
+    if (optimisticState) {
+      toast.success("Saved to Vault");
+    } else {
+      toast.success("Removed from Vault");
+    }
+
+    try {
+      await toggleSaveSpot(user.uid, post.id, previousServerState);
+    } catch (error) {
+      setIsSaved(previousServerState);
+      toast.error("Failed to update vault. Please try again.");
+    }
+  };
 
   return (
     <article id={`post-${post.id}`} className="flex flex-col gap-3 md:gap-4 p-4 md:p-6 bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-3xl border border-neutral-200 dark:border-white/10 shadow-sm">
@@ -69,22 +143,41 @@ export default function FeedPost({ post, isLast = false }: { post: any; isLast?:
             {post.title}
           </h3>
           <div className="flex items-center gap-3 md:gap-4 shrink-0">
-            <button className="flex items-center gap-1.5 group active:scale-90 transition-transform">
-              <span className="material-symbols-outlined text-neutral-400 group-hover:text-primary transition-colors">
-                favorite
-              </span>
-              <span className="text-[10px] font-bold tracking-widest text-neutral-500">
-                {post.likes || 0}
+            
+            <button 
+              onClick={handleToggleLike} 
+              className="flex items-center gap-1.5 group select-none outline-none"
+            >
+              <motion.div 
+                whileTap={{ scale: 0.8 }} 
+                animate={{ scale: isLiked ? [1, 1.2, 1] : 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Heart className={`size-6 transition-colors ${isLiked ? "fill-red-500 text-red-500" : "text-zinc-400 group-hover:text-red-400"}`} />
+              </motion.div>
+              <span className={`text-[10px] font-bold tracking-widest ${isLiked ? "text-red-500" : "text-neutral-500"}`}>
+                {likesCount}
               </span>
             </button>
-            <button className="flex items-center gap-1.5 group active:scale-90 transition-transform hidden sm:flex">
-              <span className="material-symbols-outlined text-neutral-400 group-hover:text-primary transition-colors">
-                chat_bubble
-              </span>
+            
+            <button 
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-1.5 group outline-none"
+            >
+              <motion.div whileTap={{ scale: 0.9 }}>
+                <MessageCircle className={`size-6 transition-colors ${showComments ? "text-primary" : "text-zinc-400 group-hover:text-primary"}`} />
+              </motion.div>
             </button>
-            <button className="text-neutral-400 hover:text-primary transition-colors active:scale-90">
-              <span className="material-symbols-outlined">bookmark</span>
+            
+            <button 
+              onClick={handleToggleSave}
+              className="outline-none group mt-[2px]"
+            >
+              <motion.div whileTap={{ scale: 0.9 }}>
+                <Bookmark className={`size-6 transition-colors ${isSaved ? "fill-emerald-500 text-emerald-500" : "text-zinc-400 group-hover:text-emerald-400"}`} />
+              </motion.div>
             </button>
+            
           </div>
         </div>
 
@@ -94,6 +187,11 @@ export default function FeedPost({ post, isLast = false }: { post: any; isLast?:
             <span className="font-bold tracking-wide mr-2 text-foreground">@{authorUsername}</span>
             {captionText}
           </p>
+        )}
+
+        {/* Comments Section */}
+        {showComments && (
+          <CommentSection gemId={post.id} />
         )}
 
         {!isLast && (

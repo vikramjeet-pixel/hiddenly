@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Public_Sans, Playfair_Display } from "next/font/google";
 import ResponsiveLayout from "@/components/ResponsiveLayout";
 import { AuthProvider } from "@/context/AuthContext";
+import ToasterProvider from "@/components/ToasterProvider";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -39,6 +40,7 @@ export default function RootLayout({
       <body className={`${publicSans.variable} ${playfairDisplay.variable} antialiased`}>
         {/* WRAPPED ENTIRE APP IN AUTH PROVIDER */}
         <AuthProvider>
+          <ToasterProvider />
           <ResponsiveLayout>
             {children}
           </ResponsiveLayout>

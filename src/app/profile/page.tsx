@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Bookmark } from "lucide-react";
 import { doc, getDoc, setDoc, query, collection, where, orderBy, getDocs, deleteDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
@@ -156,6 +157,13 @@ export default function ProfilePage() {
       <div className="h-48 md:h-64 w-full bg-gradient-to-br from-primary/20 via-primary/5 to-transparent relative">
         <div className="absolute top-6 right-6 flex gap-3">
           <button 
+            onClick={() => router.push('/vault')}
+            className="px-4 py-2 rounded-full bg-white/50 backdrop-blur-md flex items-center gap-2 hover:bg-white/80 transition-colors shadow-sm text-foreground text-xs font-bold tracking-widest uppercase"
+          >
+            <Bookmark className="size-4 text-emerald-500 fill-emerald-500" />
+            Vault
+          </button>
+          <button 
             onClick={logOut}
             className="size-10 rounded-full bg-white/50 backdrop-blur-md flex items-center justify-center hover:bg-white/80 transition-colors shadow-sm text-red-500"
           >
@@ -163,7 +171,6 @@ export default function ProfilePage() {
           </button>
         </div>
       </div>
-
       <div className="max-w-4xl mx-auto px-6 -mt-24 md:-mt-32 relative z-10 flex flex-col items-center">
         {/* Top Section: Avatar & Info */}
         <div className="size-32 md:size-48 rounded-full border-4 border-background overflow-hidden relative shadow-2xl bg-white mb-4 group cursor-pointer">
@@ -220,7 +227,7 @@ export default function ProfilePage() {
                   <button onClick={() => setIsEditingBio(false)} className="text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-black dark:hover:text-white px-4 py-2 transition-colors">
                     Cancel
                   </button>
-                  <button onClick={handleSaveBio} className="bg-primary text-white rounded-full px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all shadow-md">
+                  <button onClick={handleSaveBio} className="bg-primary text-primary-foreground rounded-full px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all shadow-md">
                     Save Bio
                   </button>
                 </div>
@@ -253,7 +260,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black font-serif italic tracking-tighter">My Gems</h2>
             <div className="flex gap-2">
-              <button className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center bg-primary text-white hover:bg-primary-hover transition-all shadow-md shadow-primary/20 active:scale-95">
+              <button className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary-hover transition-all shadow-md shadow-primary/20 active:scale-95">
                 <span className="material-symbols-outlined text-[18px]">grid_view</span>
               </button>
               <button onClick={() => router.push('/post')} className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95">

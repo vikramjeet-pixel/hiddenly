@@ -2,10 +2,11 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { UploadCloud, CheckCircle2, ChevronDown } from "lucide-react";
+import { UploadCloud, CheckCircle2, ChevronDown, MapPin } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useUploadGem, PostDetails } from "@/hooks/useUploadGem";
 import MediaPreview from "@/components/MediaPreview";
+import { importLibrary, setOptions } from "@googlemaps/js-api-loader";
 
 const GEM_TYPES = [
   "Nature",
@@ -26,11 +27,66 @@ export default function PostPage() {
     description: "",
     gemType: "Nature",
     locationName: "",
-    latitude: 37.7749, // Mock default coordinates
-    longitude: -122.4194,
+    latitude: 0, // Changed from hardcoded SF to 0
+    longitude: 0,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  // Initialize Google Maps Places Autocomplete
+  useEffect(() => {
+    let isMounted = true;
+    
+    const initAutocomplete = async () => {
+      // Prevent double initialization in React Strict Mode
+      if (autocompleteRef.current) return;
+
+      try {
+        setOptions({
+          key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+          v: "weekly"
+        });
+
+        const { Autocomplete } = (await importLibrary("places")) as any;
+        
+        if (!locationInputRef.current || !isMounted) return;
+
+        autocompleteRef.current = new Autocomplete(locationInputRef.current, {
+          fields: ["geometry", "name", "formatted_address"],
+        });
+
+        // Debug log to ensure it mapped correctly without silent halting
+        console.log("Google Places Autocomplete successfully bound to:", locationInputRef.current);
+
+        autocompleteRef.current?.addListener("place_changed", () => {
+          const place = autocompleteRef.current?.getPlace();
+          
+          if (place && place.geometry && place.geometry.location) {
+            const lat = place.geometry.location.lat();
+            const lng = place.geometry.location.lng();
+            const locName = place.name || place.formatted_address || "";
+            
+            setDetails((prev) => ({
+              ...prev,
+              locationName: locName,
+              latitude: lat,
+              longitude: lng,
+            }));
+          }
+        });
+      } catch (err) {
+        console.error("Critical failure loading Google Places API:", err);
+      }
+    };
+
+    initAutocomplete();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -81,7 +137,11 @@ export default function PostPage() {
     await uploadFiles(files, user.uid, details);
   };
 
-  const isFormValid = details.title.trim() !== "" && files.length > 0 && details.locationName.trim() !== "";
+  const isFormValid = 
+    details.title.trim() !== "" && 
+    files.length > 0 && 
+    details.locationName.trim() !== "" && 
+    details.latitude !== 0; // Strictly ensure an actual map point was selected
 
   if (authLoading || !user) {
     return (
@@ -193,20 +253,34 @@ export default function PostPage() {
               </div>
             </div>
 
-             {/* Location Name */}
+             {/* Location Name (Uses Google Places Autocomplete) */}
              <div className="group relative">
-              <label className="text-[10px] tracking-[0.2em] font-bold text-neutral-500 uppercase mb-2 block group-focus-within:text-foreground transition-colors">
-                City / Country <span className="text-primary">*</span>
+              <label className="text-[10px] tracking-[0.2em] font-bold text-neutral-500 uppercase mb-2 block group-focus-within:text-foreground transition-colors flex items-center justify-between">
+                <div>Search Location <span className="text-primary">*</span></div>
+                {details.latitude !== 0 && (
+                  <div className="flex items-center gap-1 text-green-500">
+                    <CheckCircle2 className="size-3" />
+                    <span className="text-[8px] uppercase tracking-widest">Pinned</span>
+                  </div>
+                )}
               </label>
-              <input
-                type="text"
-                placeholder="Kyoto, Japan"
-                className="w-full bg-transparent border-0 border-b-2 border-neutral-200 dark:border-white/10 py-3 px-0 focus:ring-0 focus:border-foreground text-foreground text-sm tracking-wide transition-all outline-none"
-                value={details.locationName}
-                onChange={(e) => setDetails({ ...details, locationName: e.target.value })}
-                required
-                disabled={loading}
-              />
+              <div className="relative">
+                <MapPin className={`absolute left-0 top-1/2 -translate-y-1/2 size-4 transition-colors ${details.latitude !== 0 ? 'text-green-500' : 'text-neutral-400'}`} />
+                <input
+                  type="text"
+                  ref={locationInputRef}
+                  placeholder="E.g. The Louvre, Paris"
+                  className={`w-full bg-transparent border-0 border-b-2 py-3 pl-7 pr-0 focus:ring-0 text-foreground text-sm tracking-wide transition-all outline-none ${details.latitude !== 0 ? 'border-green-500/50 focus:border-green-500' : 'border-neutral-200 dark:border-white/10 focus:border-foreground'}`}
+                  value={details.locationName}
+                  onChange={(e) => {
+                    // Reset lat/lon if they manually type to force them to use the dropdown again
+                    setDetails({ ...details, locationName: e.target.value, latitude: 0, longitude: 0 });
+                  }}
+                  required
+                  disabled={loading}
+                  autoComplete="off"
+                />
+              </div>
             </div>
             
             {/* Hidden Coordinates */}

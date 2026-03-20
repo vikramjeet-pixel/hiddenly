@@ -20,7 +20,7 @@ export default function EmptyState() {
 
       <Link
         href="/post"
-        className="bg-primary text-white rounded-full py-4 px-8 font-bold text-xs uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
+        className="bg-primary text-primary-foreground rounded-full py-4 px-8 font-bold text-xs uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all shadow-xl shadow-primary/20 flex items-center gap-2"
       >
         <span className="material-symbols-outlined text-base">add_location</span>
         Share Your First Gem
