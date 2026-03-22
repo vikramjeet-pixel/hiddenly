@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Bookmark } from "lucide-react";
@@ -14,6 +14,18 @@ import GemCard from "@/components/GemCard";
 import FollowButton from "@/components/FollowButton";
 
 export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex w-full justify-center items-center min-h-screen">
+        <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+function ProfileContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import FeedPost from "@/components/FeedPost";
@@ -20,7 +20,20 @@ import { useAuth } from "@/context/AuthContext";
 import { Search, X, Navigation, Globe, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// Wrapper with Suspense boundary (required by Next.js 16 for useSearchParams)
 export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="flex w-full justify-center items-center min-h-screen">
+        <div className="size-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent() {
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
   const [feedMode, setFeedMode] = useState<"latest" | "nearme" | "following">("latest");
   const { query: searchQuery, setQuery } = useSearch();
