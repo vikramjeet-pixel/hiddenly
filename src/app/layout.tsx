@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Public_Sans, Playfair_Display } from "next/font/google";
 import ResponsiveLayout from "@/components/ResponsiveLayout";
 import { AuthProvider } from "@/context/AuthContext";
+import { SearchProvider } from "@/context/SearchContext";
+import { LocationProvider } from "@/context/LocationContext";
+import SearchOverlay from "@/components/SearchOverlay";
 import ToasterProvider from "@/components/ToasterProvider";
 import "./globals.css";
 
@@ -40,10 +43,15 @@ export default function RootLayout({
       <body className={`${publicSans.variable} ${playfairDisplay.variable} antialiased`}>
         {/* WRAPPED ENTIRE APP IN AUTH PROVIDER */}
         <AuthProvider>
-          <ToasterProvider />
-          <ResponsiveLayout>
-            {children}
-          </ResponsiveLayout>
+          <LocationProvider>
+            <SearchProvider>
+              <ToasterProvider />
+              <SearchOverlay />
+              <ResponsiveLayout>
+                {children}
+              </ResponsiveLayout>
+            </SearchProvider>
+          </LocationProvider>
         </AuthProvider>
       </body>
     </html>

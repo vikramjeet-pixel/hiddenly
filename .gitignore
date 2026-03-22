@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase Admin service account key — NEVER commit
+scripts/serviceAccountKey.json
+**/serviceAccountKey.json
+
+# Backfill script build output
+scripts/dist/

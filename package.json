@@ -6,15 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "backfill:geohashes": "ts-node --project scripts/tsconfig.json scripts/backfillGeohashes.ts",
+    "verify:geohashes": "ts-node --project scripts/tsconfig.json scripts/verifyGeohashes.ts"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@hookform/resolvers": "^5.2.2",
     "@types/google.maps": "^3.58.1",
+    "date-fns": "^4.1.0",
     "firebase": "^12.10.0",
     "framer-motion": "^12.38.0",
+    "geofire-common": "^6.0.0",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
     "react": "19.2.3",
@@ -25,12 +29,14 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.37",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "firebase-admin": "^13.7.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

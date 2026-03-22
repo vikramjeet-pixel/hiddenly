@@ -2,15 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { User as UserIcon, Bookmark, Heart, MessageCircle } from "lucide-react";
+import { User as UserIcon, Bookmark, Heart, MessageCircle, Navigation } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { toggleSaveSpot } from "@/lib/vault-service";
 import { toggleLike } from "@/lib/interaction-service";
 import CommentSection from "@/components/CommentSection";
+import { formatDistance } from "@/lib/geoUtils";
+import FollowButton from "@/components/FollowButton";
 
-export default function FeedPost({ post, isLast = false }: { post: any; isLast?: boolean }) {
+export default function FeedPost({
+  post,
+  isLast = false,
+  distanceKm,
+  authorAffinity,
+}: {
+  post: any;
+  isLast?: boolean;
+  /** Distance in km injected by Near Me mode — renders an emerald badge when set */
+  distanceKm?: number;
+  /** Affinity score from the following-edge — renders a Top Pathfinder badge when > 20 */
+  authorAffinity?: number;
+}) {
   const { user, savedSpots, likedSpots } = useAuth();
   
   // Extract robust fallbacks since Firestore schema differs from initial Mock UI schema
@@ -103,9 +117,29 @@ export default function FeedPost({ post, isLast = false }: { post: any; isLast?:
             )}
           </div>
           <div>
-            <h4 className="text-sm md:text-base font-bold font-serif tracking-tight">
-              {authorName}
-            </h4>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm md:text-base font-bold font-serif tracking-tight">
+                {authorName}
+              </h4>
+              {/* Top Pathfinder badge — shown when affinity > 20 */}
+              {typeof authorAffinity === "number" && authorAffinity > 20 && (
+                <span
+                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border border-amber-300 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700"
+                  title={`Affinity: ${authorAffinity}`}
+                >
+                  <span className="material-symbols-outlined !text-[11px]">local_fire_department</span>
+                  Top Pathfinder
+                </span>
+              )}
+              {/* Follow button — hides itself automatically on own posts */}
+              {post.authorId && (
+                <FollowButton
+                  targetUserId={post.authorId}
+                  targetName={authorName}
+                  size="sm"
+                />
+              )}
+            </div>
             <div className="flex items-center gap-1 text-neutral-500 text-[10px] tracking-widest uppercase font-bold">
               <span className="material-symbols-outlined !text-xs text-primary">
                 location_on
@@ -114,12 +148,25 @@ export default function FeedPost({ post, isLast = false }: { post: any; isLast?:
             </div>
           </div>
         </div>
+
         
-        {post.type && (
-          <span className="hidden md:inline-flex px-3 py-1 bg-primary/10 text-primary text-[10px] uppercase tracking-widest font-bold rounded-full">
-            {post.type}
-          </span>
-        )}
+        {/* Category tag + Distance badge */}
+        <div className="flex items-center gap-2">
+          {post.type && (
+            <span className="hidden md:inline-flex px-3 py-1 bg-primary/10 text-primary text-[10px] uppercase tracking-widest font-bold rounded-full">
+              {post.type}
+            </span>
+          )}
+          {distanceKm !== undefined && (
+            <span
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide"
+              style={{ background: "#dcfce7", color: "#16a34a" }}
+            >
+              <Navigation className="size-3" />
+              {formatDistance(distanceKm, "km")} away
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Post Image */}

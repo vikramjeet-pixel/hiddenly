@@ -1,0 +1,95 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+
+    match /users/{userId} {
+      // Anyone signed in can read profiles
+      allow read: if isSignedIn();
+
+      // Only the owner can write their own profile
+      allow write: if isOwner(userId);
+
+      // Allow counter-only updates on any user document when signed in
+      // (covers the followerCount increment on the target user)
+      allow update: if isSignedIn()
+        && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['followerCount', 'followingCount']);
+
+      // ── User notifications sub-collection ─────────────────────────────────
+      // Path: users/{userId}/notifications/{notifId}
+      // Cloud Functions write notifications here; user reads & marks as read.
+      match /notifications/{notifId} {
+        allow read:   if isOwner(userId);
+        allow update: if isOwner(userId);  // mark as read
+        allow create: if isSignedIn();     // Cloud Functions create via admin SDK (bypasses rules)
+                                           // but this also allows client-side creates if needed
+      }
+    }
+
+    // ── Gems ──────────────────────────────────────────────────────────────────
+
+    match /gems/{gemId} {
+      allow read: if true;               // Public discovery feed
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+      allow update: if isSignedIn()
+        && (
+          // Author can edit their own gem
+          resource.data.authorId == request.auth.uid
+          ||
+          // Any signed-in user can update likesCount only
+          request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['likesCount'])
+        );
+      allow delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid;
+    }
+
+    // ── Gems: sub-collections ─────────────────────────────────────────────────
+
+    match /gems/{gemId}/likes/{userId} {
+      allow read:   if isSignedIn();
+      allow write:  if isOwner(userId);    // Only the liker writes their own like doc
+    }
+
+    match /gems/{gemId}/comments/{commentId} {
+      allow read:   if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.authorId == request.auth.uid;
+      allow delete: if isSignedIn()
+        && resource.data.authorId == request.auth.uid;
+    }
+
+    // ── Social Graph ──────────────────────────────────────────────────────────
+
+    match /social/{userId} {
+      allow read: if isSignedIn();
+
+      // /following — "I follow these people"
+      match /following/{followedUserId} {
+        allow read:   if isSignedIn();
+        allow write:  if isOwner(userId);
+      }
+
+      // /followers — "These people follow me"
+      match /followers/{followerUserId} {
+        allow read:   if isSignedIn();
+        allow write:  if isSignedIn()
+          && request.auth.uid == followerUserId;
+      }
+    }
+  }
+}

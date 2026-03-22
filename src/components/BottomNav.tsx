@@ -2,31 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSearch } from "@/context/SearchContext";
 
 interface BottomNavItem {
   label: string;
   icon: string;
-  iconFilled: string;
   id: string;
   href: string;
+  isSearch?: boolean;
 }
 
 const bottomNavItems: BottomNavItem[] = [
-  { label: "Discover", icon: "explore", iconFilled: "explore", id: "discover", href: "/" },
-  { label: "Search", icon: "search", iconFilled: "search", id: "search", href: "#" },
-  { label: "Post", icon: "add_circle", iconFilled: "add_circle", id: "post", href: "/post" },
-  {
-    label: "Notifications",
-    icon: "notifications",
-    iconFilled: "notifications",
-    id: "notifications",
-    href: "#",
-  },
-  { label: "Profile", icon: "person", iconFilled: "person", id: "profile", href: "/profile" },
+  { label: "Discover", icon: "explore", id: "discover", href: "/" },
+  { label: "Search", icon: "search", id: "search", href: "#", isSearch: true },
+  { label: "Post", icon: "add_circle", id: "post", href: "/post" },
+  { label: "Notifications", icon: "notifications", id: "notifications", href: "/notifications" },
+  { label: "Profile", icon: "person", id: "profile", href: "/profile" },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { openOverlay } = useSearch();
 
   return (
     <nav
@@ -35,10 +31,48 @@ export default function BottomNav() {
     >
       <div className="flex items-center justify-around h-14">
         {bottomNavItems.map((item) => {
-          // Identify the current path against internal items
-          // Ex: pathname == "/profile" matches item.href
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href && !item.isSearch;
           const isPost = item.id === "post";
+
+          const iconEl = isPost ? (
+            <span className="material-symbols-outlined !text-[32px] text-white bg-primary rounded-full p-2.5 shadow-xl shadow-primary/30 transform hover:scale-105 transition-transform">
+              {item.icon}
+            </span>
+          ) : (
+            <span
+              className={`material-symbols-outlined !text-[24px] transition-colors ${
+                isActive ? "text-primary" : "text-slate-400 dark:text-slate-500"
+              }`}
+              style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : undefined}
+            >
+              {item.icon}
+            </span>
+          );
+
+          const labelEl = !isPost && (
+            <span
+              className={`text-[10px] font-bold tracking-wide transition-colors ${
+                isActive ? "text-primary" : "text-slate-400 dark:text-slate-500"
+              }`}
+            >
+              {item.label}
+            </span>
+          );
+
+          // Search opens overlay rather than navigating
+          if (item.isSearch) {
+            return (
+              <button
+                key={item.id}
+                id={`bottom-nav-${item.id}`}
+                onClick={openOverlay}
+                className="flex flex-col items-center justify-center gap-1 transition-all active:scale-90 w-16"
+              >
+                {iconEl}
+                {labelEl}
+              </button>
+            );
+          }
 
           return (
             <Link
@@ -49,40 +83,8 @@ export default function BottomNav() {
                 isPost ? "-translate-y-4" : "w-16"
               }`}
             >
-              {isPost ? (
-                <span className="material-symbols-outlined !text-[32px] text-white bg-primary rounded-full p-2.5 shadow-xl shadow-primary/30 transform hover:scale-105 transition-transform">
-                  {item.icon}
-                </span>
-              ) : (
-                <span
-                  className={`material-symbols-outlined !text-[24px] transition-colors ${
-                    isActive
-                      ? "text-primary"
-                      : "text-slate-400 dark:text-slate-500"
-                  }`}
-                  style={
-                    isActive
-                      ? {
-                          fontVariationSettings:
-                            "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-                        }
-                      : undefined
-                  }
-                >
-                  {isActive ? item.iconFilled : item.icon}
-                </span>
-              )}
-              {!isPost && (
-                <span
-                  className={`text-[10px] font-bold tracking-wide transition-colors ${
-                    isActive
-                      ? "text-primary"
-                      : "text-slate-400 dark:text-slate-500"
-                  }`}
-                >
-                  {item.label}
-                </span>
-              )}
+              {iconEl}
+              {labelEl}
             </Link>
           );
         })}

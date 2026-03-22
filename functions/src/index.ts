@@ -106,3 +106,8 @@ export const analyzeGemPopularity = onDocumentCreated(
     }
   }
 );
+// Notification Cloud Functions (comment + like triggers)
+export { sendCommentNotification, sendLikeNotification } from "./notifications";
+
+// Affinity Tracker (smart following feed)
+export { trackAffinity } from "./affinityTracker";

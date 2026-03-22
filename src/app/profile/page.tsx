@@ -2,27 +2,42 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Bookmark } from "lucide-react";
-import { doc, getDoc, setDoc, query, collection, where, orderBy, getDocs, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, query, collection, where, getDocs, deleteDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 import { useAuth } from "@/context/AuthContext";
 import { db, storage, logOut } from "@/lib/firebase";
 import ProfileStats from "@/components/ProfileStats";
 import GemCard from "@/components/GemCard";
+import FollowButton from "@/components/FollowButton";
 
 export default function ProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Support ?uid= for browsing other profiles (future expansion)
+  const viewedUid = searchParams.get("uid") || user?.uid || "";
+  const isOwnProfile = !searchParams.get("uid") || searchParams.get("uid") === user?.uid;
 
   const [bio, setBio] = useState<string>("Wandering through life, discovering one secret gem at a time. The world is too vast to stay in one place.");
+  const [displayName, setDisplayName] = useState<string>("");
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [tempBio, setTempBio] = useState("");
-  
-  // State for user's authored gems
   const [myGems, setMyGems] = useState<any[]>([]);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
+
+  // Social counters
+  const [followerCount, setFollowerCount]   = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  // Live-update counters when FollowButton fires
+  const handleFollowChange = (nowFollowing: boolean) => {
+    setFollowerCount(prev => nowFollowing ? prev + 1 : Math.max(0, prev - 1));
+  };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !user) return;
@@ -50,50 +65,40 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login"); // Protect route
+      router.push("/login");
       return;
     }
 
-    if (user) {
-      // Fetch user profile from Firestore
+    if (user && viewedUid) {
       const fetchUserData = async () => {
         try {
-          const docRef = doc(db, "users", user.uid);
+          const docRef = doc(db, "users", viewedUid);
           const docSnap = await getDoc(docRef);
 
           if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.bio) setBio(data.bio);
-          } else {
-            // First time loading profile: optionally initialize minimal doc
-            await setDoc(docRef, {
-              bio,
-              createdAt: new Date(),
-            });
+            if (data.bio)            setBio(data.bio);
+            if (data.displayName)    setDisplayName(data.displayName);
+            if (data.photoURL)       setAvatarUrl(data.photoURL);
+            setFollowerCount(data.followerCount   || 0);
+            setFollowingCount(data.followingCount || 0);
+          } else if (isOwnProfile) {
+            await setDoc(doc(db, "users", user.uid), { bio, createdAt: new Date() });
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
       };
 
-      // Fetch user's own gems without creating complex composite indexes
       const fetchUserGems = async () => {
         try {
           const q = query(
             collection(db, "gems"),
-            where("authorId", "==", user.uid)
+            where("authorId", "==", viewedUid)
           );
           const snapshot = await getDocs(q);
-          
           const userGems = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          
-          // Sort client-side to prevent 'Index required' console errors
-          userGems.sort((a: any, b: any) => {
-            const timeA = a.createdAt?.toMillis() || 0;
-            const timeB = b.createdAt?.toMillis() || 0;
-            return timeB - timeA;
-          });
-          
+          userGems.sort((a: any, b: any) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
           setMyGems(userGems);
         } catch (error) {
           console.error("Error fetching gems:", error);
@@ -103,7 +108,7 @@ export default function ProfilePage() {
       fetchUserData();
       fetchUserGems();
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, viewedUid]);
 
   const handleSaveBio = async () => {
     setIsEditingBio(false);
@@ -149,7 +154,9 @@ export default function ProfilePage() {
     );
   }
 
-  const dummyAvatar = user.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
+  const profileAvatar = avatarUrl || user.photoURL || "https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png";
+  const profileName   = displayName || user.displayName || "Nomad Traveler";
+  const shownUid      = viewedUid || user.uid;
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-20 md:pb-0">
@@ -175,40 +182,53 @@ export default function ProfilePage() {
         {/* Top Section: Avatar & Info */}
         <div className="size-32 md:size-48 rounded-full border-4 border-background overflow-hidden relative shadow-2xl bg-white mb-4 group cursor-pointer">
           <Image
-            src={dummyAvatar}
+            src={profileAvatar}
             alt="Profile Avatar"
             fill
             sizes="192px"
             className="object-cover"
           />
-          {/* Edit Avatar Overlay */}
-          <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
-            {isUploadingAvatar ? (
-              <div className="size-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-2xl mb-1">add_a_photo</span>
-                <span className="text-[10px] font-bold tracking-widest uppercase">Change</span>
-              </>
-            )}
-            <input 
-              type="file" 
-              accept="image/*" 
-              className="hidden" 
-              onChange={handleAvatarChange} 
-              disabled={isUploadingAvatar}
-            />
-          </label>
+          {/* Edit Avatar Overlay — only own profile */}
+          {isOwnProfile && (
+            <label className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
+              {isUploadingAvatar ? (
+                <div className="size-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-2xl mb-1">add_a_photo</span>
+                  <span className="text-[10px] font-bold tracking-widest uppercase">Change</span>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+                disabled={isUploadingAvatar}
+              />
+            </label>
+          )}
         </div>
 
         <div className="flex flex-col items-center text-center">
           <h1 className="text-3xl md:text-5xl font-black font-serif italic mb-2 tracking-tighter">
-            {user.displayName || "Nomad Traveler"}
+            {profileName}
           </h1>
-          
-          <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20 mb-6">
-            <span className="material-symbols-outlined text-[14px]">explore</span>
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Pathfinder Rank • Level 3</span>
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">
+              <span className="material-symbols-outlined text-[14px]">explore</span>
+              <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Pathfinder Rank • Level 3</span>
+            </div>
+            {/* Follow button — hidden on own profile */}
+            {!isOwnProfile && (
+              <FollowButton
+                targetUserId={shownUid}
+                targetName={profileName}
+                size="md"
+                onFollowChange={handleFollowChange}
+              />
+            )}
           </div>
 
           {/* Bio Section */}
@@ -249,8 +269,13 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Stats Row Segment */}
-        <ProfileStats gemsCount={myGems.length || 0} trustScore={0} followingCount={0} />
+        {/* Stats Row */}
+        <ProfileStats
+          gemsCount={myGems.length}
+          trustScore={0}
+          followingCount={followingCount}
+          followerCount={followerCount}
+        />
 
         {/* Spacer */}
         <div className="w-full h-[1px] bg-neutral-200 dark:bg-white/10 my-12 max-w-2xl" />

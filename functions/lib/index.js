@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.analyzeGemPopularity = void 0;
+exports.trackAffinity = exports.sendLikeNotification = exports.sendCommentNotification = exports.analyzeGemPopularity = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const params_1 = require("firebase-functions/params");
 const admin = __importStar(require("firebase-admin"));
@@ -123,4 +123,11 @@ exports.analyzeGemPopularity = (0, firestore_1.onDocumentCreated)({
         });
     }
 });
+// Notification Cloud Functions (comment + like triggers)
+var notifications_1 = require("./notifications");
+Object.defineProperty(exports, "sendCommentNotification", { enumerable: true, get: function () { return notifications_1.sendCommentNotification; } });
+Object.defineProperty(exports, "sendLikeNotification", { enumerable: true, get: function () { return notifications_1.sendLikeNotification; } });
+// Affinity Tracker (smart following feed)
+var affinityTracker_1 = require("./affinityTracker");
+Object.defineProperty(exports, "trackAffinity", { enumerable: true, get: function () { return affinityTracker_1.trackAffinity; } });
 //# sourceMappingURL=index.js.map
