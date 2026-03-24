@@ -17,7 +17,7 @@ import { useLocation } from "@/context/LocationContext";
 import { useGems } from "@/hooks/useGems";
 import { useFollowingFeed } from "@/hooks/useFollowingFeed";
 import { useAuth } from "@/context/AuthContext";
-import { Search, X, Navigation, Globe, Users } from "lucide-react";
+import { Search, X, Navigation, Globe, Users, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Wrapper with Suspense boundary (required by Next.js 16 for useSearchParams)
@@ -112,7 +112,7 @@ function HomeContent() {
             onClick={() => { setFeedMode("latest"); }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
               feedMode === "latest"
-                ? "bg-primary text-white border-primary shadow-sm shadow-primary/25"
+                ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/25"
                 : "bg-white dark:bg-neutral-900 text-neutral-500 border-neutral-200 dark:border-white/10 hover:border-primary/40"
             }`}
           >
@@ -153,6 +153,9 @@ function HomeContent() {
               Following
             </button>
           )}
+
+
+
 
           {/* Awaiting location indicator */}
           <AnimatePresence>

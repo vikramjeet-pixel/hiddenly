@@ -111,3 +111,7 @@ export { sendCommentNotification, sendLikeNotification } from "./notifications";
 
 // Affinity Tracker (smart following feed)
 export { trackAffinity } from "./affinityTracker";
+
+// AI Assistant and Embedding Triggers
+export { adventureAssistant } from "./adventureAssistant";
+export { generateGemEmbedding } from "./generateEmbedding";

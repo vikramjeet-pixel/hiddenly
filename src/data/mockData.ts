@@ -224,7 +224,6 @@ export interface NavLink {
 
 export const navLinks: NavLink[] = [
   { label: "Home", icon: "home", href: "/", isActive: true },
-  { label: "Explore", icon: "explore", href: "#" },
   { label: "Create", icon: "add_circle", href: "/post" },
   {
     label: "Notifications",

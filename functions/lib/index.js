@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.trackAffinity = exports.sendLikeNotification = exports.sendCommentNotification = exports.analyzeGemPopularity = void 0;
+exports.generateGemEmbedding = exports.adventureAssistant = exports.trackAffinity = exports.sendLikeNotification = exports.sendCommentNotification = exports.analyzeGemPopularity = void 0;
 const firestore_1 = require("firebase-functions/v2/firestore");
 const params_1 = require("firebase-functions/params");
 const admin = __importStar(require("firebase-admin"));
@@ -130,4 +130,9 @@ Object.defineProperty(exports, "sendLikeNotification", { enumerable: true, get: 
 // Affinity Tracker (smart following feed)
 var affinityTracker_1 = require("./affinityTracker");
 Object.defineProperty(exports, "trackAffinity", { enumerable: true, get: function () { return affinityTracker_1.trackAffinity; } });
+// AI Assistant and Embedding Triggers
+var adventureAssistant_1 = require("./adventureAssistant");
+Object.defineProperty(exports, "adventureAssistant", { enumerable: true, get: function () { return adventureAssistant_1.adventureAssistant; } });
+var generateEmbedding_1 = require("./generateEmbedding");
+Object.defineProperty(exports, "generateGemEmbedding", { enumerable: true, get: function () { return generateEmbedding_1.generateGemEmbedding; } });
 //# sourceMappingURL=index.js.map

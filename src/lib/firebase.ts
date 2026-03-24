@@ -12,6 +12,7 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getFunctions } from "firebase/functions";
 
 // ─── Firebase Configuration ─────────────────────────────────
 const firebaseConfig = {
@@ -29,6 +30,7 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
 const storage = getStorage(app);
+const functions = getFunctions(app);
 
 console.log("Firebase Initialized:", app.name);
 
@@ -69,5 +71,5 @@ export async function logOut() {
   await signOut(auth);
 }
 
-export { auth, app, db, storage };
+export { auth, app, db, storage, functions };
 export type { User };

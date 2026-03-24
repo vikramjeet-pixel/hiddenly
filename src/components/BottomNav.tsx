@@ -13,7 +13,7 @@ interface BottomNavItem {
 }
 
 const bottomNavItems: BottomNavItem[] = [
-  { label: "Discover", icon: "explore", id: "discover", href: "/" },
+  { label: "Home", icon: "home", id: "home", href: "/" },
   { label: "Search", icon: "search", id: "search", href: "#", isSearch: true },
   { label: "Post", icon: "add_circle", id: "post", href: "/post" },
   { label: "Notifications", icon: "notifications", id: "notifications", href: "/notifications" },
@@ -35,7 +35,7 @@ export default function BottomNav() {
           const isPost = item.id === "post";
 
           const iconEl = isPost ? (
-            <span className="material-symbols-outlined !text-[32px] text-white bg-primary rounded-full p-2.5 shadow-xl shadow-primary/30 transform hover:scale-105 transition-transform">
+            <span className="material-symbols-outlined !text-[32px] text-white bg-secondary rounded-full p-2.5 shadow-xl shadow-secondary/30 transform hover:scale-105 transition-transform">
               {item.icon}
             </span>
           ) : (
