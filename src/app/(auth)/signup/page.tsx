@@ -78,7 +78,7 @@ export default function SignupPage() {
       <div className="relative z-10 w-full max-w-md bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
         <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl tracking-tighter text-white font-bold mb-3" style={{ fontFamily: "var(--font-serif)" }}>
-            NomadSecret
+            Hiddenly
           </h1>
           <p className="text-[10px] tracking-[0.3em] text-white/60 uppercase font-light">
             An Anthology of Rare Destinations

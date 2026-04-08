@@ -94,7 +94,7 @@ export default function VaultPage() {
         </div>
         <button 
           onClick={() => router.push('/profile')} 
-          className="size-10 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-white/5 dark:hover:bg-white/10 transition-colors shadow-sm active:scale-95"
+          className="size-10 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 transition-colors shadow-sm active:scale-95"
         >
           <span className="material-symbols-outlined text-lg">arrow_back</span>
         </button>
@@ -103,8 +103,8 @@ export default function VaultPage() {
       {/* Main Feed Map */}
       <div className="flex flex-col gap-6 pb-20">
         {vaultGems.length === 0 ? (
-          <div className="w-full h-80 border-2 border-dashed border-neutral-200 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center text-center p-6 bg-white/30 dark:bg-black/20">
-            <span className="material-symbols-outlined text-6xl text-neutral-300 dark:text-white/20 mb-3 block">bookmark_add</span>
+          <div className="w-full h-80 border-2 border-dashed border-neutral-200 rounded-3xl flex flex-col items-center justify-center text-center p-6 bg-white/30">
+            <span className="material-symbols-outlined text-6xl text-neutral-300 mb-3 block">bookmark_add</span>
             <p className="text-sm tracking-wide text-neutral-500 uppercase font-medium">No gems saved yet.</p>
             <button 
               onClick={() => router.push('/')} 

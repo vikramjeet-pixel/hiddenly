@@ -6,7 +6,7 @@ export default function AuthButtons() {
     <div className="flex items-center gap-3 animate-in fade-in duration-300">
       <Link
         href="/login"
-        className="text-xs font-bold uppercase tracking-widest text-foreground/80 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 px-4 py-2 rounded-full transition-all"
+        className="text-xs font-bold uppercase tracking-widest text-foreground/80 hover:text-foreground hover:bg-black/5 px-4 py-2 rounded-full transition-all"
       >
         Log In
       </Link>

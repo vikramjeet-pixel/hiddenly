@@ -15,14 +15,14 @@ export default function Navbar() {
   const { openOverlay, query } = useSearch();
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-[#221610]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 hidden md:block">
+    <nav className="sticky top-0 z-50 bg-white backdrop-blur-md border-b border-slate-200 shadow-sm hidden md:block">
       <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
 
         {/* Logo */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="material-symbols-outlined text-primary text-3xl">database</span>
           <h1 className="text-xl md:text-2xl tracking-tight font-bold" style={{ fontFamily: "var(--font-serif)" }}>
-            NomadSecret
+            Hiddenly
           </h1>
         </div>
 
@@ -31,7 +31,7 @@ export default function Navbar() {
           <button
             onClick={openOverlay}
             id="desktop-search-btn"
-            className="w-full flex items-center gap-2 bg-slate-100 dark:bg-slate-800 rounded-full py-2 pl-4 pr-4 text-sm text-neutral-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-left"
+            className="w-full flex items-center gap-2 bg-slate-100 rounded-full py-2 pl-4 pr-4 text-sm text-neutral-400 hover:bg-slate-200 transition-colors text-left"
           >
             <Search className="size-4 shrink-0" />
             <span className="flex-1 truncate">{query || "Search destinations…"}</span>

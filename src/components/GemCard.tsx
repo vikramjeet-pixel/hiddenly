@@ -13,7 +13,7 @@ export default function GemCard({ gem, onDelete, onEdit }: GemCardProps) {
   return (
     <div
       id={`gem-card-${gem.id}`}
-      className="relative group cursor-pointer overflow-hidden rounded-xl aspect-square hover:scale-[1.02] active:scale-95 transition-all duration-300 ease-out border border-neutral-200 dark:border-white/10"
+      className="relative group cursor-pointer overflow-hidden rounded-xl aspect-square hover:scale-[1.02] active:scale-95 transition-all duration-300 ease-out border border-neutral-200"
     >
       <Image
         src={mainImage}

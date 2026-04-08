@@ -41,7 +41,7 @@ export default function LocationBanner() {
           className="relative w-full rounded-2xl overflow-hidden mb-4"
         >
           {/* ── Gradient background ────────────────────────────── */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-amber-50 to-orange-50 dark:from-primary/20 dark:via-neutral-900 dark:to-neutral-900 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-amber-50 to-orange-50 pointer-events-none" />
           <div className="absolute inset-0 border border-primary/20 rounded-2xl pointer-events-none" />
 
           <div className="relative px-4 py-3.5 flex items-center gap-3">
@@ -64,7 +64,7 @@ export default function LocationBanner() {
               {/* ── Error state ── */}
               {error ? (
                 <>
-                  <p className="text-xs font-bold text-amber-700 dark:text-amber-400 leading-snug">
+                  <p className="text-xs font-bold text-amber-700 leading-snug">
                     {error}
                   </p>
                   {permissionStatus !== "denied" && (
@@ -84,10 +84,10 @@ export default function LocationBanner() {
               ) : (
                 /* ── Prompt state ── */
                 <>
-                  <p className="text-xs font-bold text-neutral-800 dark:text-neutral-100 leading-snug">
+                  <p className="text-xs font-bold text-neutral-800 leading-snug">
                     Find gems near your current location.
                   </p>
-                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                  <p className="text-[11px] text-neutral-500 mt-0.5">
                     We never store or share your location.
                   </p>
                 </>
@@ -109,7 +109,7 @@ export default function LocationBanner() {
             {/* Dismiss × */}
             <button
               onClick={() => { setDismissed(true); clearError(); }}
-              className="shrink-0 size-6 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-200 dark:hover:bg-white/10 hover:text-neutral-600 transition-colors ml-1"
+              className="shrink-0 size-6 flex items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-200 hover:text-neutral-600 transition-colors ml-1"
               aria-label="Dismiss location banner"
             >
               <X className="size-3.5" />

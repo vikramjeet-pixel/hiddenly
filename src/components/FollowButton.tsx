@@ -120,7 +120,7 @@ export default function FollowButton({
         ${sizeClasses[size]}
         ${
           isFollowing
-            ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700 hover:bg-red-50 hover:text-red-500 hover:border-red-300 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+            ? "bg-emerald-50 text-emerald-600 border-emerald-300 hover:bg-red-50 hover:text-red-500 hover:border-red-300"
             : "bg-primary text-white border-primary hover:bg-primary/85 shadow-sm shadow-primary/25"
         }
       `}

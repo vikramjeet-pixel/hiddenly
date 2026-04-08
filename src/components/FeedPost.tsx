@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { User as UserIcon, Bookmark, Heart, MessageCircle, Navigation } from "lucide-react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -99,53 +100,55 @@ export default function FeedPost({
   };
 
   return (
-    <article id={`post-${post.id}`} className="flex flex-col gap-3 md:gap-4 p-4 md:p-6 bg-white/50 dark:bg-black/20 backdrop-blur-md rounded-3xl border border-neutral-200 dark:border-white/10 shadow-sm">
+    <article id={`post-${post.id}`} className="flex flex-col gap-3 md:gap-4 p-4 md:p-6 bg-white backdrop-blur-md rounded-3xl border border-neutral-200 shadow-sm">
       {/* Author Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="size-10 md:size-11 rounded-full bg-primary/10 overflow-hidden border border-primary/20 flex items-center justify-center shrink-0">
-            {avatarUrl ? (
-              <Image
-                src={avatarUrl}
-                alt={`${authorName}'s avatar`}
-                fill
-                sizes="44px"
-                className="object-cover"
-              />
-            ) : (
-              <UserIcon className="size-5 text-primary" strokeWidth={2.5} />
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h4 className="text-sm md:text-base font-bold font-serif tracking-tight">
-                {authorName}
-              </h4>
-              {/* Top Pathfinder badge — shown when affinity > 20 */}
-              {typeof authorAffinity === "number" && authorAffinity > 20 && (
-                <span
-                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border border-amber-300 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-700"
-                  title={`Affinity: ${authorAffinity}`}
-                >
-                  <span className="material-symbols-outlined !text-[11px]">local_fire_department</span>
-                  Top Pathfinder
-                </span>
-              )}
-              {/* Follow button — hides itself automatically on own posts */}
-              {post.authorId && (
-                <FollowButton
-                  targetUserId={post.authorId}
-                  targetName={authorName}
-                  size="sm"
+          <Link href={post.authorId ? `/profile?uid=${post.authorId}` : "#"} className="flex items-center gap-3 group">
+            <div className="size-10 md:size-11 rounded-full bg-primary/10 overflow-hidden border border-primary/20 flex items-center justify-center shrink-0">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={`${authorName}'s avatar`}
+                  fill
+                  sizes="44px"
+                  className="object-cover"
                 />
+              ) : (
+                <UserIcon className="size-5 text-primary" strokeWidth={2.5} />
               )}
             </div>
-            <div className="flex items-center gap-1 text-neutral-500 text-[10px] tracking-widest uppercase font-bold">
-              <span className="material-symbols-outlined !text-xs text-primary">
-                location_on
-              </span>
-              <span>{locationText}</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm md:text-base font-bold font-serif tracking-tight group-hover:text-primary transition-colors">
+                  {authorName}
+                </h4>
+              </div>
+              <div className="flex items-center gap-1 text-neutral-500 text-[10px] tracking-widest uppercase font-bold mt-0.5">
+                <span className="material-symbols-outlined !text-xs text-primary">
+                  location_on
+                </span>
+                <span>{locationText}</span>
+              </div>
             </div>
+          </Link>
+          <div className="flex items-center gap-2 ml-2">
+            {/* Follow button — hides itself automatically on own posts */}
+            {post.authorId && (
+              <FollowButton
+                targetUserId={post.authorId}
+                targetName={authorName}
+                size="sm"
+              />
+            )}
+            {post.authorId && (
+              <Link 
+                href={`/profile?uid=${post.authorId}`}
+                className="text-[10px] font-bold uppercase tracking-wider text-primary border border-primary/30 px-2 py-1 rounded-full hover:bg-primary/10 transition-colors"
+              >
+                Profile
+              </Link>
+            )}
           </div>
         </div>
 
@@ -171,7 +174,7 @@ export default function FeedPost({
 
       {/* Post Image */}
       {mainImage && (
-        <div className="rounded-2xl overflow-hidden bg-black/10 dark:bg-black/50 relative aspect-[16/10] mt-2 border border-neutral-200 dark:border-white/10 shadow-inner group">
+        <div className="rounded-2xl overflow-hidden bg-black/10 relative aspect-[16/10] mt-2 border border-neutral-200 shadow-inner group">
           <Image
             src={mainImage}
             alt={post.title || "Hidden Gem Media"}
@@ -230,7 +233,7 @@ export default function FeedPost({
 
         {/* Caption */}
         {captionText && (
-          <p className="text-sm md:text-base leading-relaxed text-neutral-600 dark:text-neutral-300">
+          <p className="text-sm md:text-base leading-relaxed text-neutral-600">
             <span className="font-bold tracking-wide mr-2 text-foreground">@{authorUsername}</span>
             {captionText}
           </p>
@@ -242,7 +245,7 @@ export default function FeedPost({
         )}
 
         {!isLast && (
-          <div className="h-px bg-neutral-200 dark:bg-white/10 w-full mt-4" />
+          <div className="h-px bg-neutral-200 w-full mt-4" />
         )}
       </div>
     </article>

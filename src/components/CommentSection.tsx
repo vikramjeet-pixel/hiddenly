@@ -43,7 +43,7 @@ export default function CommentSection({ gemId }: { gemId: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-4 mt-4 pt-4 border-t border-neutral-200 dark:border-white/10 animate-in fade-in slide-in-from-top-4 duration-300">
+    <div className="flex flex-col gap-4 mt-4 pt-4 border-t border-neutral-200 animate-in fade-in slide-in-from-top-4 duration-300">
       
       {/* Scrollable Comments View */}
       <div className="flex flex-col gap-3 max-h-[300px] overflow-y-auto scrollbar-hide">
@@ -67,16 +67,16 @@ export default function CommentSection({ gemId }: { gemId: string }) {
 
         {comments.map((comment) => (
           <div key={comment.id} className="flex gap-3 animate-in fade-in duration-300">
-            <div className="size-8 rounded-full overflow-hidden bg-neutral-200 dark:bg-white/10 relative shrink-0 border border-neutral-200 dark:border-white/10">
+            <div className="size-8 rounded-full overflow-hidden bg-neutral-200 relative shrink-0 border border-neutral-200">
               {comment.authorAvatar ? (
                 <Image src={comment.authorAvatar} alt={comment.authorName} fill className="object-cover" />
               ) : (
-                <UserIcon className="size-4 m-auto text-neutral-500 dark:text-neutral-400 absolute inset-0" />
+                <UserIcon className="size-4 m-auto text-neutral-500 absolute inset-0" />
               )}
             </div>
             
-            <div className="flex flex-col bg-neutral-100 dark:bg-white/5 rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm max-w-[85%]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-0.5">
+            <div className="flex flex-col bg-neutral-100 rounded-2xl rounded-tl-sm px-4 py-2.5 shadow-sm max-w-[85%]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 mb-0.5">
                 {comment.authorName}
               </span>
               <p className="text-sm text-foreground leading-snug break-words">
@@ -95,7 +95,7 @@ export default function CommentSection({ gemId }: { gemId: string }) {
           onChange={(e) => setText(e.target.value)}
           placeholder={user ? "Add a comment..." : "Sign in to join the conversation"}
           disabled={!user || submitting}
-          className="flex-1 bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 rounded-full py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium disabled:opacity-50"
+          className="flex-1 bg-neutral-100 border border-neutral-200 rounded-full py-2.5 pl-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-medium disabled:opacity-50"
         />
         <button
           type="submit"

@@ -13,7 +13,7 @@ export default function Footer() {
         </a>
       ))}
       <p className="text-[10px] text-slate-400 mt-2 w-full">
-        © 2024 NomadSecret. Travel well.
+        © 2024 Hiddenly. Travel well.
       </p>
     </footer>
   );

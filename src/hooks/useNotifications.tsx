@@ -75,7 +75,7 @@ export function useNotifications() {
               }}
             >
               <h4 className="font-bold text-sm">{title}</h4>
-              <p className="text-xs text-neutral-600 dark:text-neutral-300">{body}</p>
+              <p className="text-xs text-neutral-600">{body}</p>
             </div>
           ), { duration: 5000 });
         });

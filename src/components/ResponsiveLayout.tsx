@@ -8,7 +8,7 @@ interface ResponsiveLayoutProps {
 
 export default function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen bg-[#f8f7f4] text-slate-900">
       {/* Desktop Top Nav (hidden on mobile) */}
       <Navbar />
 

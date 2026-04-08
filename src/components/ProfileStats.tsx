@@ -20,11 +20,11 @@ export default function ProfileStats({
   ];
 
   return (
-    <div className="flex w-full max-w-sm justify-between items-center rounded-2xl bg-white/50 dark:bg-black/30 backdrop-blur-md p-4 mt-6 border border-neutral-200 dark:border-white/10 shadow-sm">
+    <div className="flex w-full max-w-sm justify-between items-center rounded-2xl bg-white/50 backdrop-blur-md p-4 mt-6 border border-neutral-200 shadow-sm">
       {stats.map((stat, i) => (
         <React.Fragment key={stat.label}>
           {i > 0 && (
-            <div className="h-8 w-[1px] bg-neutral-300 dark:bg-white/10 mx-2" />
+            <div className="h-8 w-[1px] bg-neutral-300 mx-2" />
           )}
           <div className="flex flex-col items-center flex-1">
             <span className="text-xl font-bold font-serif">{stat.value}</span>

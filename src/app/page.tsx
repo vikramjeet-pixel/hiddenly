@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 import FeedPost from "@/components/FeedPost";
 import FilterBar from "@/components/FilterBar";
 import SidebarLeft from "@/components/SidebarLeft";
@@ -11,12 +10,14 @@ import Footer from "@/components/Footer";
 import EmptyState from "@/components/EmptyState";
 import ViewToggle from "@/components/ViewToggle";
 import MapView from "@/components/MapView";
+import AIMapCarousel from "@/components/AIMapCarousel";
 import LocationBanner from "@/components/LocationBanner";
 import { useSearch } from "@/context/SearchContext";
 import { useLocation } from "@/context/LocationContext";
 import { useGems } from "@/hooks/useGems";
 import { useFollowingFeed } from "@/hooks/useFollowingFeed";
 import { useAuth } from "@/context/AuthContext";
+import { useAIMapBridge } from "@/context/AIMapBridgeContext";
 import { Search, X, Navigation, Globe, Users, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -40,6 +41,15 @@ function HomeContent() {
   const { coords, permissionStatus, requestLocation } = useLocation();
   const { user } = useAuth();
   const searchParams = useSearchParams();
+  const bridge = useAIMapBridge();
+
+  // Auto-switch to map view when AI bridge receives results
+  useEffect(() => {
+    if (bridge.gems.length > 0) setViewMode("map");
+  }, [bridge.gems]);
+
+  // Focused gem from carousel
+  const focusedAIGem = bridge.gems[bridge.focusedIndex] ?? null;
 
   // Sync URL ?search= param into context on mount
   useEffect(() => {
@@ -113,7 +123,7 @@ function HomeContent() {
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
               feedMode === "latest"
                 ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/25"
-                : "bg-white dark:bg-neutral-900 text-neutral-500 border-neutral-200 dark:border-white/10 hover:border-primary/40"
+                : "bg-white text-neutral-500 border-neutral-200 hover:border-primary/40"
             }`}
           >
             <Globe className="size-3.5" />
@@ -128,7 +138,7 @@ function HomeContent() {
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border disabled:opacity-40 disabled:cursor-not-allowed ${
               feedMode === "nearme"
                 ? "bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-300"
-                : "bg-white dark:bg-neutral-900 text-neutral-500 border-neutral-200 dark:border-white/10 hover:border-emerald-400 hover:text-emerald-600"
+                : "bg-white text-neutral-500 border-neutral-200 hover:border-emerald-400 hover:text-emerald-600"
             }`}
           >
             <Navigation className="size-3.5" />
@@ -146,7 +156,7 @@ function HomeContent() {
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
                 feedMode === "following"
                   ? "bg-violet-500 text-white border-violet-500 shadow-sm shadow-violet-300"
-                  : "bg-white dark:bg-neutral-900 text-neutral-500 border-neutral-200 dark:border-white/10 hover:border-violet-400 hover:text-violet-600"
+                  : "bg-white text-neutral-500 border-neutral-200 hover:border-violet-400 hover:text-violet-600"
               }`}
             >
               <Users className="size-3.5" />
@@ -176,7 +186,7 @@ function HomeContent() {
         {/* Active search banner */}
         {searchQuery && !isNearMe && (
           <div className="flex items-center justify-between gap-2 mb-3 px-1 py-2 bg-primary/5 border border-primary/20 rounded-2xl">
-            <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300 pl-2">
+            <div className="flex items-center gap-2 text-sm text-neutral-600 pl-2">
               <Search className="size-3.5 text-primary shrink-0" />
               <span>
                 Showing results for{" "}
@@ -187,7 +197,7 @@ function HomeContent() {
             </div>
             <button
               onClick={clearSearch}
-              className="shrink-0 mr-2 size-6 flex items-center justify-center rounded-full bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 transition-colors"
+              className="shrink-0 mr-2 size-6 flex items-center justify-center rounded-full bg-neutral-200 hover:bg-neutral-300 transition-colors"
             >
               <X className="size-3.5 text-neutral-500" />
             </button>
@@ -201,10 +211,10 @@ function HomeContent() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              className="mb-3 flex items-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl"
+              className="mb-3 flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-2xl"
             >
               <Navigation className="size-3.5 text-emerald-500 shrink-0" />
-              <p className="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">
+              <p className="text-xs text-emerald-700 font-semibold">
                 {gems.length} gem{gems.length !== 1 ? "s" : ""} within 50 km of your location
               </p>
             </motion.div>
@@ -221,10 +231,10 @@ function HomeContent() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
-              className="mb-3 flex items-center gap-2 px-3 py-2 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-2xl"
+              className="mb-3 flex items-center gap-2 px-3 py-2 bg-violet-50 border border-violet-200 rounded-2xl"
             >
               <Users className="size-3.5 text-violet-500 shrink-0" />
-              <p className="text-xs text-violet-700 dark:text-violet-400 font-semibold">
+              <p className="text-xs text-violet-700 font-semibold">
                 {gems.length} gem{gems.length !== 1 ? "s" : ""} from people you follow
               </p>
             </motion.div>
@@ -233,7 +243,7 @@ function HomeContent() {
 
         {/* Error state */}
         {error && (
-          <div className="mb-4 px-4 py-3 rounded-2xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800 text-sm text-rose-600 dark:text-rose-400">
+          <div className="mb-4 px-4 py-3 rounded-2xl bg-rose-50 border border-rose-200 text-sm text-rose-600">
             {error}
           </div>
         )}
@@ -242,8 +252,16 @@ function HomeContent() {
         <ViewToggle viewMode={viewMode} setViewMode={setViewMode} />
 
         {/* MAP VIEW */}
-        <div className={`w-full mt-4 ${viewMode === "map" ? "block animate-in fade-in" : "hidden"}`}>
-          <MapView gems={gems} />
+        <div className={`w-full mt-4 relative ${viewMode === "map" ? "block animate-in fade-in" : "hidden"}`}>
+          <MapView
+            gems={gems}
+            aiGems={bridge.gems.length > 0 ? bridge.gems : undefined}
+            focusedAIGem={bridge.gems.length > 0 ? focusedAIGem : null}
+            isScanning={bridge.scanning}
+            vibeLabel={bridge.vibeLabel}
+          />
+          {/* AI carousel overlaid on map */}
+          {bridge.gems.length > 0 && <AIMapCarousel />}
         </div>
 
         {/* GRID VIEW */}
@@ -270,7 +288,7 @@ function HomeContent() {
               />
             ))
           ) : (
-            <div className="mt-8 border border-neutral-200 dark:border-white/10 rounded-3xl bg-white/40 dark:bg-neutral-900/40 backdrop-blur-md flex flex-col items-center justify-center py-16 gap-3 text-center px-4">
+            <div className="mt-8 border border-neutral-200 rounded-3xl bg-white/40 backdrop-blur-md flex flex-col items-center justify-center py-16 gap-3 text-center px-4">
               {isFollowing ? (
               <>
                 <Users className="size-8 text-violet-300" />
@@ -278,7 +296,7 @@ function HomeContent() {
                 <p className="text-sm text-neutral-400">Follow travelers to see their gems here!</p>
                 <button
                   onClick={() => setFeedMode("latest")}
-                  className="mt-2 px-5 py-2 rounded-full bg-primary text-white text-sm font-semibold"
+                  className="mt-2 px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
                 >
                   Discover travelers
                 </button>
@@ -290,7 +308,7 @@ function HomeContent() {
                 <p className="text-sm text-neutral-400">Be the first to post a gem in your area!</p>
                 <button
                   onClick={() => setFeedMode("latest")}
-                  className="mt-2 px-5 py-2 rounded-full bg-primary text-white text-sm font-semibold"
+                    className="mt-2 px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
                 >
                   Browse all gems
                 </button>
@@ -302,7 +320,7 @@ function HomeContent() {
                   <p className="text-sm text-neutral-400">Try a different search or browse a category.</p>
                   <button
                     onClick={clearSearch}
-                    className="mt-2 px-5 py-2 rounded-full bg-primary text-white text-sm font-semibold"
+                      className="mt-2 px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
                   >
                     Clear Search
                   </button>

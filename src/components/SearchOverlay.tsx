@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Search, X, Clock, TrendingUp, MapPin, Tag, Sparkles } from "lucide-react";
+import { Search, X, Clock, TrendingUp, MapPin, Tag, Sparkles, User as UserIcon } from "lucide-react";
 import Image from "next/image";
 import {
   collection,
@@ -30,12 +30,12 @@ const TRENDING_LOCATIONS = [
 ];
 
 const CATEGORIES = [
-  { label: "Nature", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" },
-  { label: "Urban", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" },
-  { label: "Culinary", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300" },
-  { label: "Secret Stay", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300" },
-  { label: "Beach", color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300" },
-  { label: "Mountain", color: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300" },
+  { label: "Nature", color: "bg-emerald-100 text-emerald-700" },
+  { label: "Urban", color: "bg-blue-100 text-blue-700" },
+  { label: "Culinary", color: "bg-orange-100 text-orange-700" },
+  { label: "Secret Stay", color: "bg-purple-100 text-purple-700" },
+  { label: "Beach", color: "bg-cyan-100 text-cyan-700" },
+  { label: "Mountain", color: "bg-slate-100 text-slate-700" },
 ];
 
 // ── Types ─────────────────────────────────────────────────────
@@ -47,6 +47,12 @@ interface GemResult {
   type?: string;
   media?: string[];
   authorName?: string;
+}
+
+interface UserResult {
+  id: string;
+  displayName: string;
+  photoURL?: string;
 }
 
 // ── Debounce hook ─────────────────────────────────────────────
@@ -77,7 +83,7 @@ function Chip({
     <button
       onClick={onClick}
       className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all active:scale-95 hover:scale-105
-        ${colorClass ?? "bg-neutral-100 dark:bg-white/10 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-white/20"}`}
+        ${colorClass ?? "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"}`}
     >
       {prefix && <span>{prefix}</span>}
       {label}
@@ -90,10 +96,10 @@ function ResultRow({ gem, onSelect }: { gem: GemResult; onSelect: (gem: GemResul
   return (
     <button
       onClick={() => onSelect(gem)}
-      className="flex items-center gap-3 w-full px-4 py-3 hover:bg-neutral-50 dark:hover:bg-white/5 rounded-xl transition-colors text-left group"
+      className="flex items-center gap-3 w-full px-4 py-3 hover:bg-neutral-50 rounded-xl transition-colors text-left group"
     >
       {/* Thumbnail */}
-      <div className="shrink-0 size-12 rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 relative">
+      <div className="shrink-0 size-12 rounded-xl overflow-hidden bg-neutral-100 relative">
         {thumb ? (
           <Image src={thumb} alt={gem.title} fill sizes="48px" className="object-cover" />
         ) : (
@@ -104,7 +110,7 @@ function ResultRow({ gem, onSelect }: { gem: GemResult; onSelect: (gem: GemResul
       </div>
       {/* Text */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-neutral-900 dark:text-neutral-100 truncate group-hover:text-primary transition-colors">
+        <p className="text-sm font-bold text-neutral-900 truncate group-hover:text-primary transition-colors">
           {gem.title}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
@@ -125,6 +131,36 @@ function ResultRow({ gem, onSelect }: { gem: GemResult; onSelect: (gem: GemResul
   );
 }
 
+function UserRow({ user, onSelect }: { user: UserResult; onSelect: (user: UserResult) => void }) {
+  return (
+    <button
+      onClick={() => onSelect(user)}
+      className="flex items-center gap-3 w-full px-4 py-3 hover:bg-neutral-50 rounded-xl transition-colors text-left group"
+    >
+      <div className="shrink-0 size-12 rounded-full overflow-hidden bg-primary/10 border border-primary/20 relative flex items-center justify-center">
+        {user.photoURL ? (
+          <Image src={user.photoURL} alt={user.displayName} fill sizes="48px" className="object-cover" />
+        ) : (
+          <UserIcon className="size-5 text-primary" strokeWidth={2.5} />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-neutral-900 truncate group-hover:text-primary transition-colors">
+          {user.displayName}
+        </p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 bg-neutral-100 text-neutral-500 rounded-full">
+            Traveler
+          </span>
+        </div>
+      </div>
+      <span className="material-symbols-outlined text-neutral-300 group-hover:text-primary transition-colors !text-base shrink-0">
+        north_west
+      </span>
+    </button>
+  );
+}
+
 // ── Main Overlay ───────────────────────────────────────────────
 
 export default function SearchOverlay() {
@@ -133,6 +169,7 @@ export default function SearchOverlay() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [localQuery, setLocalQuery] = useState(ctxQuery);
   const [results, setResults] = useState<GemResult[]>([]);
+  const [userResults, setUserResults] = useState<UserResult[]>([]);
   const [searching, setSearching] = useState(false);
   const debouncedQuery = useDebounce(localQuery, 320);
 
@@ -149,6 +186,7 @@ export default function SearchOverlay() {
     const q = debouncedQuery.trim();
     if (!q) {
       setResults([]);
+      setUserResults([]);
       return;
     }
 
@@ -204,6 +242,60 @@ export default function SearchOverlay() {
         });
 
         setResults(results.slice(0, 10));
+
+        // 4. User search
+        const usersRef = collection(db, "users");
+        const uResults: UserResult[] = [];
+        const uQ = query(
+          usersRef,
+          orderBy("displayName"),
+          where("displayName", ">=", q),
+          where("displayName", "<", upper),
+          limit(3)
+        );
+        const uSnap = await getDocs(uQ);
+        uSnap.docs.forEach((d) => {
+          uResults.push({ id: d.id, ...d.data() } as UserResult);
+        });
+        
+        // Let's also try lowercase match fallback for users if exact case doesn't yield much
+        if (uResults.length < 3 && q.toLowerCase() !== q) {
+          const lowerUpper = q.toLowerCase().replace(/.$/, (c) => String.fromCharCode(c.charCodeAt(0) + 1));
+          const uQLower = query(
+            usersRef,
+            orderBy("displayName"),
+            where("displayName", ">=", q.toLowerCase()),
+            where("displayName", "<", lowerUpper),
+            limit(3)
+          );
+          const uSnapLower = await getDocs(uQLower);
+          uSnapLower.docs.forEach((d) => {
+            if (!uResults.find(u => u.id === d.id)) {
+               uResults.push({ id: d.id, ...d.data() } as UserResult);
+            }
+          });
+        }
+        
+        // Let's also try capitalized match fallback (e.g., searching "vikram" finds "Vikram")
+        const capitalizedQ = q.charAt(0).toUpperCase() + q.slice(1);
+        if (uResults.length < 3 && capitalizedQ !== q) {
+          const capUpper = capitalizedQ.replace(/.$/, (c) => String.fromCharCode(c.charCodeAt(0) + 1));
+          const uQCap = query(
+            usersRef,
+            orderBy("displayName"),
+            where("displayName", ">=", capitalizedQ),
+            where("displayName", "<", capUpper),
+            limit(3)
+          );
+          const uSnapCap = await getDocs(uQCap);
+          uSnapCap.docs.forEach((d) => {
+            if (!uResults.find(u => u.id === d.id)) {
+               uResults.push({ id: d.id, ...d.data() } as UserResult);
+            }
+          });
+        }
+        
+        setUserResults(uResults.slice(0, 3));
       } catch (err) {
         console.error("Search error:", err);
       } finally {
@@ -235,6 +327,15 @@ export default function SearchOverlay() {
     [addRecentSearch, closeOverlay, router]
   );
 
+  const handleUserSelect = useCallback(
+    (u: UserResult) => {
+      addRecentSearch(u.displayName);
+      closeOverlay();
+      router.push(`/profile?uid=${u.id}`);
+    },
+    [addRecentSearch, closeOverlay, router]
+  );
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") commitSearch(localQuery);
     if (e.key === "Escape") closeOverlay();
@@ -243,8 +344,8 @@ export default function SearchOverlay() {
   if (!isOverlayOpen) return null;
 
   const showEmpty = !localQuery.trim();
-  const showResults = !showEmpty && results.length > 0;
-  const showNoResults = !showEmpty && !searching && results.length === 0;
+  const showResults = !showEmpty && (results.length > 0 || userResults.length > 0);
+  const showNoResults = !showEmpty && !searching && results.length === 0 && userResults.length === 0;
 
   return (
     <AnimatePresence>
@@ -268,10 +369,10 @@ export default function SearchOverlay() {
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="relative z-10 w-full max-w-2xl mx-auto mt-4 md:mt-16 px-4"
         >
-          <div className="bg-white dark:bg-[#111] rounded-3xl shadow-2xl border border-neutral-200 dark:border-white/10 overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-2xl border border-neutral-200 overflow-hidden">
             
             {/* ── Search Input ─────────────────────── */}
-            <div className="flex items-center gap-3 px-4 py-4 border-b border-neutral-100 dark:border-white/5">
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-neutral-100">
               <Search className="size-5 shrink-0 text-neutral-400" />
               <input
                 ref={inputRef}
@@ -280,12 +381,12 @@ export default function SearchOverlay() {
                 onChange={(e) => setLocalQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search gems, places, categories…"
-                className="flex-1 bg-transparent text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 outline-none"
+                className="flex-1 bg-transparent text-base text-neutral-900 placeholder:text-neutral-400 outline-none"
               />
               {localQuery && (
                 <button
                   onClick={() => setLocalQuery("")}
-                  className="size-6 flex items-center justify-center rounded-full bg-neutral-200 dark:bg-white/10 text-neutral-500 hover:bg-neutral-300 transition-colors"
+                  className="size-6 flex items-center justify-center rounded-full bg-neutral-200 text-neutral-500 hover:bg-neutral-300 transition-colors"
                 >
                   <X className="size-3.5" />
                 </button>
@@ -312,11 +413,24 @@ export default function SearchOverlay() {
               {showResults && (
                 <div className="flex flex-col gap-1">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 px-2 mb-1">
-                    Results
+                    Gems
                   </p>
-                  {results.map((gem) => (
+                  {results.slice(0, 5).map((gem) => (
                     <ResultRow key={gem.id} gem={gem} onSelect={handleGemSelect} />
                   ))}
+                  
+                  {userResults.length > 0 && (
+                    <>
+                      <div className="h-px bg-neutral-100 my-2 mx-4" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 px-2 mb-1">
+                        Travelers
+                      </p>
+                      {userResults.map((u) => (
+                        <UserRow key={u.id} user={u} onSelect={handleUserSelect} />
+                      ))}
+                    </>
+                  )}
+                  
                   <button
                     onClick={() => commitSearch(localQuery)}
                     className="mt-1 mx-2 flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/70 transition-colors"

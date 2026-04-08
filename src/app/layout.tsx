@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { SearchProvider } from "@/context/SearchContext";
 import { LocationProvider } from "@/context/LocationContext";
 import SearchOverlay from "@/components/SearchOverlay";
+import { AIMapBridgeProvider } from "@/context/AIMapBridgeContext";
 import ToasterProvider from "@/components/ToasterProvider";
 import "./globals.css";
 
@@ -23,7 +24,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "NomadSecret — Social Travel App",
+  title: "Hiddenly — Social Travel App",
   description: "Discover secret travel destinations shared by real travelers.",
 };
 
@@ -45,11 +46,13 @@ export default function RootLayout({
         <AuthProvider>
           <LocationProvider>
             <SearchProvider>
-              <ToasterProvider />
-              <SearchOverlay />
-              <ResponsiveLayout>
-                {children}
-              </ResponsiveLayout>
+              <AIMapBridgeProvider>
+                <ToasterProvider />
+                <SearchOverlay />
+                <ResponsiveLayout>
+                  {children}
+                </ResponsiveLayout>
+              </AIMapBridgeProvider>
             </SearchProvider>
           </LocationProvider>
         </AuthProvider>

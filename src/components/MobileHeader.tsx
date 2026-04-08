@@ -11,13 +11,13 @@ export default function MobileHeader() {
   const { openOverlay } = useSearch();
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#221610]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 md:hidden">
+    <header className="sticky top-0 z-50 bg-white backdrop-blur-md border-b border-slate-200 shadow-sm md:hidden">
       <div className="px-4 h-14 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-1.5">
           <span className="material-symbols-outlined text-primary !text-[26px]">database</span>
           <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: "var(--font-serif)" }}>
-            NomadSecret
+            Hiddenly
           </h1>
         </div>
 
@@ -27,7 +27,7 @@ export default function MobileHeader() {
           <button
             onClick={openOverlay}
             id="mobile-search-btn"
-            className="text-slate-600 dark:text-slate-400 active:scale-90 transition-transform"
+            className="text-slate-600 active:scale-90 transition-transform"
             aria-label="Open search"
           >
             <span className="material-symbols-outlined">search</span>
@@ -38,12 +38,12 @@ export default function MobileHeader() {
             <Link
               href="/notifications"
               id="mobile-notif-btn"
-              className="relative text-slate-600 dark:text-slate-400 active:scale-90 transition-transform"
+              className="relative text-slate-600 active:scale-90 transition-transform"
               aria-label="Notifications"
             >
               <span className="material-symbols-outlined">notifications</span>
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none border-2 border-white dark:border-[#221610]">
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center leading-none border-2 border-white">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -53,7 +53,7 @@ export default function MobileHeader() {
           {/* Profile */}
           <Link
             href="/profile"
-            className="size-8 rounded-full bg-primary/10 border border-slate-200 dark:border-slate-700 flex items-center justify-center"
+            className="size-8 rounded-full bg-primary/10 border border-slate-200 flex items-center justify-center"
           >
             <span className="material-symbols-outlined text-primary !text-lg">person</span>
           </Link>

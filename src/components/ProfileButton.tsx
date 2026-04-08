@@ -20,7 +20,7 @@ export default function ProfileButton({ user }: ProfileButtonProps) {
   return (
     <button
       onClick={handleProfileClick}
-      className="flex items-center gap-3 hover:bg-black/5 dark:hover:bg-white/10 p-1 pr-3 lg:pr-4 rounded-full transition-all active:scale-95 animate-in fade-in duration-300 border border-transparent hover:border-black/10 dark:hover:border-white/10"
+      className="flex items-center gap-3 hover:bg-black/5 p-1 pr-3 lg:pr-4 rounded-full transition-all active:scale-95 animate-in fade-in duration-300 border border-transparent hover:border-black/10"
     >
       <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border border-primary/20 shrink-0">
         {user.photoURL ? (

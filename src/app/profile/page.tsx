@@ -4,7 +4,7 @@ import React, { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Bookmark } from "lucide-react";
-import { doc, getDoc, setDoc, query, collection, where, getDocs, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, query, collection, where, getDocs, deleteDoc, limit } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { updateProfile } from "firebase/auth";
 import { useAuth } from "@/context/AuthContext";
@@ -38,6 +38,7 @@ function ProfileContent() {
   const [displayName, setDisplayName] = useState<string>("");
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [tempBio, setTempBio] = useState("");
+  const [tempName, setTempName] = useState("");
   const [myGems, setMyGems] = useState<any[]>([]);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string>("");
@@ -123,20 +124,48 @@ function ProfileContent() {
   }, [user, loading, router, viewedUid]);
 
   const handleSaveBio = async () => {
-    setIsEditingBio(false);
-    if (!user || !tempBio.trim()) return;
+    if (!user) return;
+    
+    const trimmedName = tempName.trim();
+    const currentName = displayName || user.displayName || "Nomad Traveler";
+    
+    // Uniqueness Check
+    if (trimmedName && trimmedName !== currentName) {
+      try {
+        const usersRef = collection(db, "users");
+        const qCheck = query(usersRef, where("displayName", "==", trimmedName), limit(1));
+        const snap = await getDocs(qCheck);
+        const nameTaken = snap.docs.some(docItem => docItem.id !== user.uid);
+        
+        if (nameTaken) {
+          alert(`The username "${trimmedName}" is already taken! Please choose another one.`);
+          return;
+        }
+      } catch (checkErr) {
+        console.error("Error checking username uniqueness:", checkErr);
+      }
+    }
 
+    setIsEditingBio(false);
     setBio(tempBio);
+    setDisplayName(trimmedName);
+    
     try {
       const docRef = doc(db, "users", user.uid);
-      await setDoc(docRef, { bio: tempBio }, { merge: true });
+      await setDoc(docRef, { bio: tempBio, displayName: trimmedName }, { merge: true });
+      
+      // Update Firebase Auth profile if name changed
+      if (trimmedName !== user.displayName) {
+        await updateProfile(user, { displayName: trimmedName });
+      }
     } catch (error) {
-      console.error("Failed to update bio", error);
+      console.error("Failed to update profile", error);
     }
   };
 
   const startEditing = () => {
     setTempBio(bio);
+    setTempName(profileName);
     setIsEditingBio(true);
   };
 
@@ -228,10 +257,6 @@ function ProfileContent() {
           </h1>
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">
-              <span className="material-symbols-outlined text-[14px]">explore</span>
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase">Pathfinder Rank • Level 3</span>
-            </div>
             {/* Follow button — hidden on own profile */}
             {!isOwnProfile && (
               <FollowButton
@@ -243,39 +268,46 @@ function ProfileContent() {
             )}
           </div>
 
-          {/* Bio Section */}
           <div className="max-w-md w-full mb-6 min-h-[60px]">
             {isEditingBio ? (
-              <div className="flex flex-col gap-3 w-full bg-white dark:bg-neutral-800 p-4 rounded-2xl shadow-sm border border-neutral-200 dark:border-neutral-700">
+              <div className="flex flex-col gap-3 w-full bg-white p-4 rounded-2xl shadow-sm border border-neutral-200">
+                <input
+                  type="text"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  className="w-full bg-transparent border-b border-neutral-200 pb-2 text-xl md:text-2xl font-black font-serif italic focus:ring-0 outline-none text-center"
+                  placeholder="Your Name"
+                />
                 <textarea
                   value={tempBio}
                   onChange={(e) => setTempBio(e.target.value)}
                   className="w-full bg-transparent border-0 resize-none text-sm md:text-base focus:ring-0 outline-none text-center"
                   rows={3}
                   placeholder="Share a short bio..."
-                  autoFocus
                 />
                 <div className="flex justify-center gap-3 mt-2">
-                  <button onClick={() => setIsEditingBio(false)} className="text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-black dark:hover:text-white px-4 py-2 transition-colors">
+                  <button onClick={() => setIsEditingBio(false)} className="text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-black px-4 py-2 transition-colors">
                     Cancel
                   </button>
                   <button onClick={handleSaveBio} className="bg-primary text-primary-foreground rounded-full px-6 py-2 text-xs font-bold uppercase tracking-widest hover:bg-primary-hover active:scale-95 transition-all shadow-md">
-                    Save Bio
+                    Save Profile
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-2 group">
-                <p className="text-sm md:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed font-label">
+              <div className="flex flex-col items-center gap-2 group relative">
+                <p className="text-sm md:text-base text-neutral-600 leading-relaxed font-label">
                   "{bio}"
                 </p>
-                <button 
-                  onClick={startEditing} 
-                  className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 hover:text-primary transition-colors flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100"
-                >
-                  <span className="material-symbols-outlined text-[14px]">edit</span>
-                  Edit Bio
-                </button>
+                {isOwnProfile && (
+                  <button 
+                    onClick={startEditing} 
+                    className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-neutral-100 text-neutral-600 hover:bg-primary hover:text-primary-foreground text-[11px] font-bold uppercase tracking-widest transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">edit</span>
+                    Edit Profile
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -290,25 +322,25 @@ function ProfileContent() {
         />
 
         {/* Spacer */}
-        <div className="w-full h-[1px] bg-neutral-200 dark:bg-white/10 my-12 max-w-2xl" />
+        <div className="w-full h-[1px] bg-neutral-200 my-12 max-w-2xl" />
 
         {/* Bottom Section: My Posted Gems Grid */}
         <div className="w-full">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black font-serif italic tracking-tighter">My Gems</h2>
             <div className="flex gap-2">
-              <button className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary-hover transition-all shadow-md shadow-primary/20 active:scale-95">
+              <button className="size-10 rounded-full border border-neutral-200 flex items-center justify-center bg-primary text-primary-foreground hover:bg-primary-hover transition-all shadow-md shadow-primary/20 active:scale-95">
                 <span className="material-symbols-outlined text-[18px]">grid_view</span>
               </button>
-              <button onClick={() => router.push('/post')} className="size-10 rounded-full border border-neutral-200 dark:border-white/10 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95">
+              <button onClick={() => router.push('/post')} className="size-10 rounded-full border border-neutral-200 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95">
                 <span className="material-symbols-outlined text-[18px]">add</span>
               </button>
             </div>
           </div>
 
           {myGems.length === 0 ? (
-            <div className="w-full h-48 border-2 border-dashed border-neutral-200 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center text-center p-6 bg-white/30 dark:bg-black/20">
-              <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-white/20 mb-3 block">photo_library</span>
+            <div className="w-full h-48 border-2 border-dashed border-neutral-200 rounded-3xl flex flex-col items-center justify-center text-center p-6 bg-white/30">
+              <span className="material-symbols-outlined text-4xl text-neutral-300 mb-3 block">photo_library</span>
               <p className="text-sm tracking-wide text-neutral-500 uppercase font-medium">No gems posted yet</p>
             </div>
           ) : (

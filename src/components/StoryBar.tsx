@@ -21,7 +21,7 @@ export default function StoryBar({ stories }: StoryBarProps) {
             className={`size-14 md:size-16 rounded-full p-0.5 ${
               story.isOwn || story.hasNewStory
                 ? "border-2 border-primary"
-                : "border-2 border-slate-200 dark:border-slate-800"
+                : "border-2 border-slate-200"
             }`}
           >
             <div className="size-full rounded-full bg-slate-200 overflow-hidden relative">
@@ -34,7 +34,7 @@ export default function StoryBar({ stories }: StoryBarProps) {
               />
             </div>
           </div>
-          <span className="text-[10px] md:text-[11px] font-medium text-slate-700 dark:text-slate-300">
+          <span className="text-[10px] md:text-[11px] font-medium text-slate-700">
             {story.name}
           </span>
         </button>

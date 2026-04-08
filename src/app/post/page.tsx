@@ -174,7 +174,7 @@ export default function PostPage() {
             onDragOver={handleDragOver}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className="w-full h-48 md:h-64 border-2 border-dashed border-neutral-300 dark:border-white/10 bg-black/5 dark:bg-black/30 hover:bg-black/10 dark:hover:bg-white/5 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer transition-all p-6 group"
+            className="w-full h-48 md:h-64 border-2 border-dashed border-neutral-300 bg-black/5 hover:bg-black/10 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer transition-all p-6 group"
           >
             <input
               type="file"
@@ -198,7 +198,7 @@ export default function PostPage() {
         </div>
 
         {/* DETAILS SECTION */}
-        <div className="space-y-6 bg-white/50 dark:bg-black/20 p-6 md:p-8 rounded-3xl border border-neutral-200 dark:border-white/10 backdrop-blur-md">
+        <div className="space-y-6 bg-white/50 p-6 md:p-8 rounded-3xl border border-neutral-200 backdrop-blur-md">
           
           {/* Title */}
           <div className="group relative">
@@ -208,7 +208,7 @@ export default function PostPage() {
             <input
               type="text"
               placeholder="E.g. Hidden Kyoto Bamboo Grove"
-              className="w-full bg-transparent border-0 border-b-2 border-neutral-200 dark:border-white/10 py-3 px-0 focus:ring-0 focus:border-foreground text-foreground text-sm tracking-wide transition-all outline-none"
+              className="w-full bg-transparent border-0 border-b-2 border-neutral-200 py-3 px-0 focus:ring-0 focus:border-foreground text-foreground text-sm tracking-wide transition-all outline-none"
               value={details.title}
               onChange={(e) => setDetails({ ...details, title: e.target.value })}
               required
@@ -223,7 +223,7 @@ export default function PostPage() {
             </label>
             <textarea
               placeholder="What makes this place special? How do you get there?"
-              className="w-full bg-transparent border-0 border-b-2 border-neutral-200 dark:border-white/10 py-3 px-0 focus:ring-0 focus:border-foreground text-foreground text-sm tracking-wide transition-all outline-none resize-none min-h-[100px]"
+              className="w-full bg-transparent border-0 border-b-2 border-neutral-200 py-3 px-0 focus:ring-0 focus:border-foreground text-foreground text-sm tracking-wide transition-all outline-none resize-none min-h-[100px]"
               value={details.description}
               onChange={(e) => setDetails({ ...details, description: e.target.value })}
               disabled={loading}
@@ -238,7 +238,7 @@ export default function PostPage() {
               </label>
               <div className="relative">
                 <select
-                  className="w-full appearance-none bg-transparent border-0 border-b-2 border-neutral-200 dark:border-white/10 py-3 px-0 focus:ring-0 focus:border-foreground text-foreground text-sm tracking-wide transition-all outline-none"
+                  className="w-full appearance-none bg-transparent border-0 border-b-2 border-neutral-200 py-3 px-0 focus:ring-0 focus:border-foreground text-foreground text-sm tracking-wide transition-all outline-none"
                   value={details.gemType}
                   onChange={(e) => setDetails({ ...details, gemType: e.target.value })}
                   disabled={loading}
@@ -270,7 +270,7 @@ export default function PostPage() {
                   type="text"
                   ref={locationInputRef}
                   placeholder="E.g. The Louvre, Paris"
-                  className={`w-full bg-transparent border-0 border-b-2 py-3 pl-7 pr-0 focus:ring-0 text-foreground text-sm tracking-wide transition-all outline-none ${details.latitude !== 0 ? 'border-green-500/50 focus:border-green-500' : 'border-neutral-200 dark:border-white/10 focus:border-foreground'}`}
+                  className={`w-full bg-transparent border-0 border-b-2 py-3 pl-7 pr-0 focus:ring-0 text-foreground text-sm tracking-wide transition-all outline-none ${details.latitude !== 0 ? 'border-green-500/50 focus:border-green-500' : 'border-neutral-200 focus:border-foreground'}`}
                   value={details.locationName}
                   onChange={(e) => {
                     // Reset lat/lon if they manually type to force them to use the dropdown again
@@ -306,7 +306,7 @@ export default function PostPage() {
         {/* UPLOAD PROGRESS & SUBMIT */}
         <div className="mt-4">
           {loading && (
-            <div className="w-full h-1.5 bg-neutral-200 dark:bg-white/10 rounded-full overflow-hidden mb-6">
+            <div className="w-full h-1.5 bg-neutral-200 rounded-full overflow-hidden mb-6">
               <div 
                 className="h-full bg-primary transition-all duration-300 ease-out"
                 style={{ width: `${progress}%` }}

@@ -224,13 +224,8 @@ export interface NavLink {
 
 export const navLinks: NavLink[] = [
   { label: "Home", icon: "home", href: "/", isActive: true },
+  { label: "Discover", icon: "auto_awesome", href: "/ai-search" },
   { label: "Create", icon: "add_circle", href: "/post" },
-  {
-    label: "Notifications",
-    icon: "notifications",
-    href: "#",
-    hasNotification: true,
-  },
 ];
 
 // ─── Sidebar Feed Links ────────────────────────────────────

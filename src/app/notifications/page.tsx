@@ -29,12 +29,12 @@ function NotifRow({ notif, onRead }: { notif: AppNotification; onRead: (id: stri
       className={`flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors rounded-2xl
         ${notif.read
           ? "opacity-50"
-          : "bg-white dark:bg-neutral-900 hover:bg-neutral-50 dark:hover:bg-neutral-800/80 border border-neutral-100 dark:border-white/5 shadow-sm"
+          : "bg-white hover:bg-neutral-50 border border-neutral-100 shadow-sm"
         }`}
     >
       {/* Icon */}
       <div className={`shrink-0 size-10 rounded-full flex items-center justify-center
-        ${isLike ? "bg-rose-100 dark:bg-rose-950" : "bg-blue-100 dark:bg-blue-950"}`}
+        ${isLike ? "bg-rose-100" : "bg-blue-100"}`}
       >
         {isLike
           ? <Heart className="size-5 text-rose-500 fill-rose-500" />
@@ -44,23 +44,23 @@ function NotifRow({ notif, onRead }: { notif: AppNotification; onRead: (id: stri
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm leading-snug text-neutral-800 dark:text-neutral-200">
+        <p className="text-sm leading-snug text-neutral-800">
           <span className="font-bold">{notif.fromUserName}</span>
           {isLike
-            ? <span className="text-neutral-500 dark:text-neutral-400"> liked your gem </span>
-            : <span className="text-neutral-500 dark:text-neutral-400"> commented on </span>
+            ? <span className="text-neutral-500"> liked your gem </span>
+            : <span className="text-neutral-500"> commented on </span>
           }
           <span className="font-semibold text-primary">{notif.gemTitle}</span>
         </p>
 
         {/* Comment preview */}
         {!isLike && notif.text && (
-          <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500 line-clamp-2 bg-neutral-100 dark:bg-white/5 px-3 py-1.5 rounded-lg italic">
+          <p className="mt-1 text-xs text-neutral-400 line-clamp-2 bg-neutral-100 px-3 py-1.5 rounded-lg italic">
             "{notif.text}"
           </p>
         )}
 
-        <p className="text-[11px] text-neutral-400 dark:text-neutral-500 mt-1.5">
+        <p className="text-[11px] text-neutral-400 mt-1.5">
           {timeAgo(notif.createdAt)}
         </p>
       </div>
@@ -79,22 +79,22 @@ export default function NotificationsPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#0e0e0e]">
+    <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/90 dark:bg-[#0e0e0e]/90 backdrop-blur-md border-b border-neutral-200 dark:border-white/5">
+      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-neutral-200">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="size-8 flex items-center justify-center rounded-full hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors"
+              className="size-8 flex items-center justify-center rounded-full hover:bg-neutral-100 transition-colors"
             >
               <ArrowLeft className="size-4" />
             </button>
             <div className="flex items-center gap-2">
-              <Bell className="size-5 text-neutral-700 dark:text-neutral-300" />
+              <Bell className="size-5 text-neutral-700" />
               <h1 className="text-lg font-bold tracking-tight">Notifications</h1>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 text-xs font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-xs font-bold">
                   {unreadCount} new
                 </span>
               )}
@@ -117,11 +117,11 @@ export default function NotificationsPage() {
       <div className="max-w-2xl mx-auto px-4 py-6">
         {!user ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <div className="size-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+            <div className="size-16 rounded-2xl bg-neutral-100 flex items-center justify-center">
               <Bell className="size-7 text-neutral-400" />
             </div>
             <div>
-              <p className="text-base font-semibold text-neutral-700 dark:text-neutral-300">Sign in to see notifications</p>
+              <p className="text-base font-semibold text-neutral-700">Sign in to see notifications</p>
               <p className="text-sm text-neutral-400 mt-1">Log in to track likes and comments on your gems.</p>
             </div>
           </div>
@@ -131,11 +131,11 @@ export default function NotificationsPage() {
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <div className="size-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+            <div className="size-16 rounded-2xl bg-neutral-100 flex items-center justify-center">
               <Bell className="size-7 text-neutral-400" />
             </div>
             <div>
-              <p className="text-base font-semibold text-neutral-700 dark:text-neutral-300">All quiet here</p>
+              <p className="text-base font-semibold text-neutral-700">All quiet here</p>
               <p className="text-sm text-neutral-400 mt-1">You'll be notified when someone likes or comments on your gems.</p>
             </div>
           </div>

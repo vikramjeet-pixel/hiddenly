@@ -26,7 +26,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#221610]/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 md:hidden bottom-nav-safe pb-4 pt-2 px-2"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white backdrop-blur-md border-t border-slate-200 shadow-sm md:hidden bottom-nav-safe pb-4 pt-2 px-2"
       id="bottom-navigation"
     >
       <div className="flex items-center justify-around h-14">
@@ -41,7 +41,7 @@ export default function BottomNav() {
           ) : (
             <span
               className={`material-symbols-outlined !text-[24px] transition-colors ${
-                isActive ? "text-primary" : "text-slate-400 dark:text-slate-500"
+                isActive ? "text-primary" : "text-slate-400"
               }`}
               style={isActive ? { fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" } : undefined}
             >
@@ -52,7 +52,7 @@ export default function BottomNav() {
           const labelEl = !isPost && (
             <span
               className={`text-[10px] font-bold tracking-wide transition-colors ${
-                isActive ? "text-primary" : "text-slate-400 dark:text-slate-500"
+                isActive ? "text-primary" : "text-slate-400"
               }`}
             >
               {item.label}
